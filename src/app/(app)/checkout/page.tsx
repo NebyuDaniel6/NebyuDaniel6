@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAbebaStore } from "@/data/store";
 import { useI18n } from "@/i18n";
@@ -60,6 +60,27 @@ function CheckoutInner() {
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const checkoutRef = useRef(checkout);
+  checkoutRef.current = checkout;
+
+  async function pay() {
+    const current = checkoutRef.current;
+    if (!current) {
+      setError("Nothing to send.");
+      return;
+    }
+    setCheckout(current);
+    setBusy(true);
+    setError("");
+    try {
+      const order = await placeOrder();
+      window.location.assign(`/orders/${order.id}?success=1`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Payment could not be verified.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   if (!checkout || !bouquet) {
     return (
@@ -70,21 +91,6 @@ function CheckoutInner() {
         </Button>
       </div>
     );
-  }
-
-  async function pay() {
-    if (!checkout) return;
-    setCheckout(checkout);
-    setBusy(true);
-    setError("");
-    try {
-      const order = await placeOrder();
-      router.push(`/orders/${order.id}?success=1`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Payment could not be verified.");
-    } finally {
-      setBusy(false);
-    }
   }
 
   return (
@@ -179,9 +185,12 @@ function CheckoutInner() {
       </div>
 
       {error && <p className="mt-3 text-sm text-rose">{error}</p>}
-      <Button className="mt-6 w-full" disabled={busy} onClick={pay}>
-        {busy ? "…" : t.checkout.pay}
-      </Button>
+      <div className="h-24" />
+      <div className="sticky bottom-0 -mx-5 bg-cream/95 px-5 py-4 backdrop-blur">
+        <Button id="pay-and-send" className="w-full" disabled={busy} type="button" onClick={() => void pay()}>
+          {busy ? "…" : t.checkout.pay}
+        </Button>
+      </div>
     </div>
   );
 }

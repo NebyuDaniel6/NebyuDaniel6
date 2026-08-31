@@ -147,8 +147,10 @@ export const useAbebaStore = create<AbebaState>()(
       setCheckout: (draft) => set({ checkout: draft }),
 
       placeOrder: async () => {
-        const { checkout, session, bouquets, addresses, people } = get();
-        if (!checkout || !session) throw new Error("Nothing to send.");
+        const checkout = get().checkout;
+        const session = get().session ?? DEMO_USER;
+        const { bouquets, addresses, people } = get();
+        if (!checkout) throw new Error("Nothing to send.");
 
         const bouquet = bouquets.find((item) => item.id === checkout.bouquetId);
         if (!bouquet || bouquet.inventoryStatus === "out") {
