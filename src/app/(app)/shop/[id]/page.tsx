@@ -1,12 +1,12 @@
 "use client";
 
 import { use, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { useAbebaStore } from "@/data/store";
 import { useI18n } from "@/i18n";
 import { formatMoney } from "@/lib/format";
-import { Button } from "@/components/ui/Button";
 
 export default function BouquetDetailPage({
   params,
@@ -18,26 +18,14 @@ export default function BouquetDetailPage({
   const router = useRouter();
   const bouquet = useAbebaStore((s) => s.bouquets.find((item) => item.id === id));
   const people = useAbebaStore((s) => s.people);
-  const setCheckout = useAbebaStore((s) => s.setCheckout);
-  const [personId, setPersonId] = useState(people[0]?.id);
+  const [personId, setPersonId] = useState(people[0]?.id ?? "person-sara");
   const [message, setMessage] = useState("");
 
   if (!bouquet) {
     return <p className="p-8 text-muted">{t.shop.empty}</p>;
   }
 
-  function send() {
-    if (!bouquet) return;
-    setCheckout({
-      bouquetId: bouquet.id,
-      personId,
-      message,
-      deliveryType: "send_now",
-      isSurprise: false,
-      paymentProvider: "telebirr",
-    });
-    router.push("/checkout");
-  }
+  const checkoutHref = `/checkout?bouquet=${bouquet.id}&person=${personId}&message=${encodeURIComponent(message)}`;
 
   return (
     <div className="pb-10">
@@ -85,13 +73,9 @@ export default function BouquetDetailPage({
                 {person.emoji} {person.name}
               </button>
             ))}
-            <button
-              type="button"
-              onClick={() => router.push("/people/new")}
-              className="rounded-full bg-paper px-4 py-2 text-sm"
-            >
+            <Link href="/people/new" className="rounded-full bg-paper px-4 py-2 text-sm">
               {t.bouquet.someoneElse}
-            </button>
+            </Link>
           </div>
         </div>
 
@@ -105,13 +89,15 @@ export default function BouquetDetailPage({
             className="w-full resize-none rounded-[20px] bg-paper px-4 py-3 outline-none"
           />
         </div>
-
-        <div className="h-20" />
+        <div className="h-16" />
       </div>
       <div className="sticky bottom-0 bg-cream/95 px-5 py-4 backdrop-blur">
-        <Button className="w-full" onClick={send}>
+        <Link
+          href={checkoutHref}
+          className="flex w-full items-center justify-center rounded-full bg-rose px-5 py-3.5 text-[15px] font-medium text-white shadow-[0_10px_24px_rgba(139,61,74,0.28)]"
+        >
           {t.bouquet.sendFlowers}
-        </Button>
+        </Link>
       </div>
     </div>
   );

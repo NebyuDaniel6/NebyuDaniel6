@@ -1,12 +1,12 @@
 "use client";
 
 import { use } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAbebaStore } from "@/data/store";
 import { useI18n } from "@/i18n";
 import { recommendForPerson } from "@/domain/recommendations";
 import { formatMoney } from "@/lib/format";
-import { Button } from "@/components/ui/Button";
 
 export default function OneTapSendPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -15,26 +15,13 @@ export default function OneTapSendPage({ params }: { params: Promise<{ id: strin
   const person = useAbebaStore((s) => s.people.find((p) => p.id === id));
   const session = useAbebaStore((s) => s.session);
   const bouquets = useAbebaStore((s) => s.bouquets);
-  const setCheckout = useAbebaStore((s) => s.setCheckout);
-
   if (!person) return null;
 
   const picks = recommendForPerson(bouquets, person, session?.typicalBudgetEtb);
   const bouquet = bouquets.find((b) => b.id === picks[0]?.bouquetId) ?? bouquets[0];
-
-  function sendNow() {
-    if (!bouquet || !person) return;
-    setCheckout({
-      bouquetId: bouquet.id,
-      personId: person.id,
-      addressId: person.addressId,
-      message: "",
-      deliveryType: "send_now",
-      isSurprise: false,
-      paymentProvider: "telebirr",
-    });
-    router.push("/checkout");
-  }
+  const checkoutHref = bouquet
+    ? `/checkout?bouquet=${bouquet.id}&person=${person.id}`
+    : "/shop";
 
   return (
     <div className="px-5 pb-10 pt-8">
@@ -56,9 +43,12 @@ export default function OneTapSendPage({ params }: { params: Promise<{ id: strin
         </div>
       )}
 
-      <Button className="mt-6 w-full" onClick={sendNow}>
+      <Link
+        href={checkoutHref}
+        className="mt-6 flex w-full items-center justify-center rounded-full bg-rose px-5 py-3.5 text-[15px] font-medium text-white"
+      >
         {t.oneTap.sendNow}
-      </Button>
+      </Link>
       <button
         type="button"
         className="mt-3 w-full py-3 text-sm text-muted"

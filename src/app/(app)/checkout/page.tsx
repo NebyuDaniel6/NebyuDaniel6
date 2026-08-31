@@ -1,30 +1,63 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAbebaStore } from "@/data/store";
 import { useI18n } from "@/i18n";
 import { formatMoney } from "@/lib/format";
 import { PAYMENT_PROVIDERS } from "@/domain/payments";
 import { Button } from "@/components/ui/Button";
-import type { DeliveryType, PaymentProviderId } from "@/domain/types";
+import type { CheckoutDraft, DeliveryType, PaymentProviderId } from "@/domain/types";
 
 export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<div className="px-5 pt-16 text-muted">…</div>}>
+      <CheckoutInner />
+    </Suspense>
+  );
+}
+
+function CheckoutInner() {
   const { t } = useI18n();
   const router = useRouter();
-  const checkout = useAbebaStore((s) => s.checkout);
+  const params = useSearchParams();
+  const stored = useAbebaStore((s) => s.checkout);
   const setCheckout = useAbebaStore((s) => s.setCheckout);
   const placeOrder = useAbebaStore((s) => s.placeOrder);
-  const bouquet = useAbebaStore((s) => s.bouquets.find((b) => b.id === s.checkout?.bouquetId));
-  const person = useAbebaStore((s) => s.people.find((p) => p.id === s.checkout?.personId));
-  const address = useAbebaStore((s) => {
-    const draft = s.checkout;
-    return (
-      s.addresses.find((a) => a.id === draft?.addressId) ??
-      s.addresses.find((a) => a.personId === draft?.personId) ??
-      s.addresses[0]
-    );
-  });
+  const bouquets = useAbebaStore((s) => s.bouquets);
+  const people = useAbebaStore((s) => s.people);
+  const addresses = useAbebaStore((s) => s.addresses);
+
+  const draft: CheckoutDraft | null = useMemo(() => {
+    const bouquetId = params.get("bouquet") ?? stored?.bouquetId;
+    if (!bouquetId) return stored;
+    return {
+      bouquetId,
+      personId: params.get("person") ?? stored?.personId,
+      addressId: stored?.addressId,
+      message: params.get("message") ?? stored?.message ?? "",
+      deliveryType: stored?.deliveryType ?? "send_now",
+      scheduledFor: stored?.scheduledFor,
+      deliveryWindow: stored?.deliveryWindow,
+      isSurprise: stored?.isSurprise ?? false,
+      paymentProvider: stored?.paymentProvider ?? "telebirr",
+    };
+  }, [params, stored]);
+
+  useEffect(() => {
+    if (draft && draft.bouquetId !== stored?.bouquetId) {
+      setCheckout(draft);
+    }
+  }, [draft, stored?.bouquetId, setCheckout]);
+
+  const checkout = draft;
+  const bouquet = bouquets.find((b) => b.id === checkout?.bouquetId);
+  const person = people.find((p) => p.id === checkout?.personId);
+  const address =
+    addresses.find((a) => a.id === checkout?.addressId) ??
+    addresses.find((a) => a.personId === checkout?.personId) ??
+    addresses[0];
+
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -40,6 +73,8 @@ export default function CheckoutPage() {
   }
 
   async function pay() {
+    if (!checkout) return;
+    setCheckout(checkout);
     setBusy(true);
     setError("");
     try {
