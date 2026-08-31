@@ -1,0 +1,483 @@
+import { addDays, formatISO } from "date-fns";
+import type {
+  Address,
+  AppNotification,
+  Bouquet,
+  Delivery,
+  FlowerStem,
+  ImportantDate,
+  Order,
+  PaymentMethod,
+  Person,
+  Rider,
+  Subscription,
+  UserProfile,
+} from "@/domain/types";
+
+const today = new Date(2026, 7, 31);
+const saraBirthday = addDays(today, 6);
+
+export const DEMO_USER: UserProfile = {
+  id: "user-nebyu",
+  email: "nebyu@abeba.app",
+  fullName: "Nebyu",
+  phone: "+251 911 000 111",
+  role: "customer",
+  preferredLanguage: "en",
+  favoriteFlowers: ["roses", "mixed"],
+  favoriteColors: ["blush", "white"],
+  typicalBudgetEtb: 1800,
+};
+
+export const DEMO_ADMIN: UserProfile = {
+  ...DEMO_USER,
+  id: "user-admin",
+  email: "admin@abeba.app",
+  fullName: "Abeba Admin",
+  role: "admin",
+};
+
+export const DEMO_RIDER_USER: UserProfile = {
+  ...DEMO_USER,
+  id: "user-rider",
+  email: "rider@abeba.app",
+  fullName: "Kidus",
+  role: "rider",
+};
+
+export const ADDRESSES: Address[] = [
+  {
+    id: "addr-sara",
+    userId: DEMO_USER.id,
+    personId: "person-sara",
+    label: "Sara · Home",
+    line1: "Bole Road, near Edna Mall",
+    city: "Addis Ababa",
+    region: "Addis Ababa",
+    country: "Ethiopia",
+    lat: 8.989,
+    lng: 38.791,
+    instructions: "Apartment 4B. Call on arrival.",
+    isDefault: true,
+  },
+  {
+    id: "addr-mom",
+    userId: DEMO_USER.id,
+    personId: "person-mom",
+    label: "Mom · Home",
+    line1: "Old Airport, Cape Verde Street",
+    city: "Addis Ababa",
+    region: "Addis Ababa",
+    country: "Ethiopia",
+    lat: 8.989,
+    lng: 38.747,
+    isDefault: false,
+  },
+  {
+    id: "addr-nebyu",
+    userId: DEMO_USER.id,
+    label: "My place",
+    line1: "Kazanchis, Ras Mekonnen Avenue",
+    city: "Addis Ababa",
+    region: "Addis Ababa",
+    country: "Ethiopia",
+    lat: 9.017,
+    lng: 38.763,
+    isDefault: false,
+  },
+];
+
+export const PEOPLE: Person[] = [
+  {
+    id: "person-sara",
+    userId: DEMO_USER.id,
+    name: "Sara",
+    relationship: "Wife",
+    emoji: "❤️",
+    favoriteFlowers: ["roses"],
+    favoriteColors: ["pink", "white"],
+    addressId: "addr-sara",
+    notes: "Loves quiet, elegant arrangements.",
+    createdAt: "2026-01-12T10:00:00.000Z",
+  },
+  {
+    id: "person-mom",
+    userId: DEMO_USER.id,
+    name: "Mom",
+    relationship: "Mother",
+    emoji: "👩",
+    favoriteFlowers: ["lilies"],
+    favoriteColors: ["white", "ivory"],
+    addressId: "addr-mom",
+    createdAt: "2026-01-12T10:00:00.000Z",
+  },
+  {
+    id: "person-hana",
+    userId: DEMO_USER.id,
+    name: "Hana",
+    relationship: "Daughter",
+    emoji: "👧",
+    favoriteFlowers: ["tulips"],
+    favoriteColors: ["pink"],
+    createdAt: "2026-02-02T10:00:00.000Z",
+  },
+  {
+    id: "person-sister",
+    userId: DEMO_USER.id,
+    name: "Meron",
+    relationship: "Sister",
+    emoji: "👩",
+    favoriteFlowers: ["mixed"],
+    favoriteColors: ["coral", "yellow"],
+    createdAt: "2026-02-10T10:00:00.000Z",
+  },
+  {
+    id: "person-dad",
+    userId: DEMO_USER.id,
+    name: "Dad",
+    relationship: "Father",
+    emoji: "👨",
+    favoriteFlowers: ["sunflowers"],
+    favoriteColors: ["yellow"],
+    createdAt: "2026-03-01T10:00:00.000Z",
+  },
+  {
+    id: "person-yonas",
+    userId: DEMO_USER.id,
+    name: "Yonas",
+    relationship: "Friend",
+    emoji: "🧑",
+    favoriteFlowers: ["seasonal"],
+    favoriteColors: ["white"],
+    createdAt: "2026-03-08T10:00:00.000Z",
+  },
+];
+
+export const IMPORTANT_DATES: ImportantDate[] = [
+  {
+    id: "date-sara-bday",
+    personId: "person-sara",
+    userId: DEMO_USER.id,
+    type: "birthday",
+    month: saraBirthday.getMonth() + 1,
+    day: saraBirthday.getDate(),
+    repeatsAnnually: true,
+    reminderOffsets: [7, 1],
+  },
+  {
+    id: "date-sara-anniv",
+    personId: "person-sara",
+    userId: DEMO_USER.id,
+    type: "anniversary",
+    month: 6,
+    day: 22,
+    year: 2019,
+    repeatsAnnually: true,
+    reminderOffsets: [7],
+  },
+  {
+    id: "date-mom-bday",
+    personId: "person-mom",
+    userId: DEMO_USER.id,
+    type: "birthday",
+    month: 5,
+    day: 8,
+    repeatsAnnually: true,
+    reminderOffsets: [7],
+  },
+  {
+    id: "date-hana-bday",
+    personId: "person-hana",
+    userId: DEMO_USER.id,
+    type: "birthday",
+    month: 9,
+    day: 3,
+    repeatsAnnually: true,
+    reminderOffsets: [7],
+  },
+];
+
+function img(id: string, crop = "800,900") {
+  return `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${crop.split(",")[0]}&h=${crop.split(",")[1]}&q=80`;
+}
+
+export const BOUQUETS: Bouquet[] = [
+  {
+    id: "bq-classic",
+    name: "The Classic",
+    slug: "the-classic",
+    description:
+      "Elegant red roses arranged with subtle greenery and premium wrapping.",
+    priceEtb: 1500,
+    flowerType: "roses",
+    occasions: ["romantic", "anniversary", "i_love_you", "birthday"],
+    colors: ["red"],
+    imageUrl: img("photo-1518895949257-7621c3c786d7"),
+    imageAlt: "A tight bouquet of deep red roses",
+    availableToday: true,
+    deliveryMinutesMin: 60,
+    deliveryMinutesMax: 90,
+    inventoryStatus: "in_stock",
+  },
+  {
+    id: "bq-blush",
+    name: "Soft Blush",
+    slug: "soft-blush",
+    description: "Pink and white roses, quiet and close to her taste.",
+    priceEtb: 1800,
+    flowerType: "roses",
+    occasions: ["birthday", "romantic", "just_because", "thinking_of_you"],
+    colors: ["pink", "white"],
+    imageUrl: img("photo-1561181288048-5b2605d37b8f"),
+    imageAlt: "Soft pink garden roses",
+    availableToday: true,
+    deliveryMinutesMin: 60,
+    deliveryMinutesMax: 90,
+    inventoryStatus: "in_stock",
+  },
+  {
+    id: "bq-golden",
+    name: "Golden Hour",
+    slug: "golden-hour",
+    description: "Sunflowers with warm seasonal greens. Bright, never loud.",
+    priceEtb: 1200,
+    flowerType: "sunflowers",
+    occasions: ["congratulations", "just_because", "thank_you"],
+    colors: ["yellow", "gold"],
+    imageUrl: img("photo-1597848212624-e593b1b19259"),
+    imageAlt: "Sunflowers in warm light",
+    availableToday: true,
+    deliveryMinutesMin: 70,
+    deliveryMinutesMax: 100,
+    inventoryStatus: "in_stock",
+  },
+  {
+    id: "bq-grace",
+    name: "Quiet Grace",
+    slug: "quiet-grace",
+    description: "White lilies, ivory wrapping, a still kind of beauty.",
+    priceEtb: 2200,
+    flowerType: "lilies",
+    occasions: ["sympathy", "thank_you", "anniversary"],
+    colors: ["white", "ivory"],
+    imageUrl: img("photo-1525310072745-f49212b5ac6d"),
+    imageAlt: "White lilies",
+    availableToday: true,
+    deliveryMinutesMin: 80,
+    deliveryMinutesMax: 120,
+    inventoryStatus: "in_stock",
+  },
+  {
+    id: "bq-first-light",
+    name: "First Light",
+    slug: "first-light",
+    description: "Tulips in blush and cream. Simple, early, sincere.",
+    priceEtb: 1600,
+    flowerType: "tulips",
+    occasions: ["thinking_of_you", "just_because", "birthday"],
+    colors: ["pink", "ivory"],
+    imageUrl: img("photo-1520763185298-1b434c919102"),
+    imageAlt: "Blush tulips",
+    availableToday: true,
+    deliveryMinutesMin: 60,
+    deliveryMinutesMax: 90,
+    inventoryStatus: "in_stock",
+  },
+  {
+    id: "bq-apology",
+    name: "The Apology",
+    slug: "the-apology",
+    description: "Soft peach mixed flowers. Enough, without trying too hard.",
+    priceEtb: 1400,
+    flowerType: "mixed",
+    occasions: ["apology", "thinking_of_you"],
+    colors: ["peach", "blush"],
+    imageUrl: img("photo-1487538100789-6a453221444d"),
+    imageAlt: "Soft peach mixed bouquet",
+    availableToday: true,
+    deliveryMinutesMin: 60,
+    deliveryMinutesMax: 90,
+    inventoryStatus: "in_stock",
+  },
+  {
+    id: "bq-celebration",
+    name: "Celebration",
+    slug: "celebration",
+    description: "A bright mixed arrangement for news worth sharing.",
+    priceEtb: 2000,
+    flowerType: "mixed",
+    occasions: ["congratulations", "birthday"],
+    colors: ["coral", "yellow", "pink"],
+    imageUrl: img("photo-1563241527-3004b4e3ba28"),
+    imageAlt: "Colorful mixed bouquet",
+    availableToday: true,
+    deliveryMinutesMin: 70,
+    deliveryMinutesMax: 110,
+    inventoryStatus: "in_stock",
+  },
+  {
+    id: "bq-whisper",
+    name: "Whisper",
+    slug: "whisper",
+    description: "A small pink seasonal bouquet. For an ordinary Tuesday.",
+    priceEtb: 950,
+    flowerType: "seasonal",
+    occasions: ["just_because", "thinking_of_you"],
+    colors: ["pink"],
+    imageUrl: img("photo-1490750967868-88aa4486c946"),
+    imageAlt: "Simple pink flowers",
+    availableToday: true,
+    deliveryMinutesMin: 50,
+    deliveryMinutesMax: 80,
+    inventoryStatus: "in_stock",
+  },
+  {
+    id: "bq-heritage",
+    name: "Heritage",
+    slug: "heritage",
+    description: "A premium garden-rose arrangement. Rare stems, quiet luxury.",
+    priceEtb: 3800,
+    flowerType: "roses",
+    occasions: ["anniversary", "romantic", "birthday"],
+    colors: ["blush", "ivory"],
+    imageUrl: img("photo-1582794543139-8ac9cb0f7b11"),
+    imageAlt: "Premium garden roses",
+    availableToday: true,
+    deliveryMinutesMin: 90,
+    deliveryMinutesMax: 140,
+    inventoryStatus: "low",
+  },
+  {
+    id: "bq-ivory",
+    name: "Ivory Promise",
+    slug: "ivory-promise",
+    description: "White roses, a clean line, a lasting kind of yes.",
+    priceEtb: 2500,
+    flowerType: "roses",
+    occasions: ["anniversary", "romantic"],
+    colors: ["white", "ivory"],
+    imageUrl: img("photo-1468327768560-75b45d25ed17"),
+    imageAlt: "White rose bouquet",
+    availableToday: true,
+    deliveryMinutesMin: 70,
+    deliveryMinutesMax: 100,
+    inventoryStatus: "in_stock",
+  },
+];
+
+export const INVENTORY: FlowerStem[] = [
+  { id: "inv-red-roses", name: "Red Roses", stemCount: 120, unit: "stems", color: "red" },
+  { id: "inv-white-roses", name: "White Roses", stemCount: 80, unit: "stems", color: "white" },
+  { id: "inv-pink-roses", name: "Pink Roses", stemCount: 64, unit: "stems", color: "pink" },
+  { id: "inv-lilies", name: "White Lilies", stemCount: 40, unit: "stems", color: "white" },
+  { id: "inv-tulips", name: "Blush Tulips", stemCount: 55, unit: "stems", color: "pink" },
+  { id: "inv-sunflowers", name: "Sunflowers", stemCount: 36, unit: "stems", color: "yellow" },
+  { id: "inv-greenery", name: "Eucalyptus", stemCount: 90, unit: "stems" },
+];
+
+export const RIDERS: Rider[] = [
+  {
+    id: "rider-kidus",
+    userId: DEMO_RIDER_USER.id,
+    firstName: "Kidus",
+    photoUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&h=200&q=80",
+    isAvailable: true,
+    vehicleType: "scooter",
+  },
+  {
+    id: "rider-lulit",
+    userId: "user-rider-2",
+    firstName: "Lulit",
+    photoUrl: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=200&h=200&q=80",
+    isAvailable: true,
+    vehicleType: "bike",
+  },
+];
+
+const pastDelivered: Order = {
+  id: "ord-past-1",
+  userId: DEMO_USER.id,
+  personId: "person-sara",
+  addressId: "addr-sara",
+  items: [
+    {
+      id: "oi-1",
+      bouquetId: "bq-blush",
+      name: "Soft Blush",
+      quantity: 1,
+      unitPriceEtb: 1800,
+    },
+  ],
+  message: "For no reason other than you.",
+  isSurprise: false,
+  deliveryType: "send_now",
+  status: "delivered",
+  flowersTotalEtb: 1800,
+  deliveryFeeEtb: 80,
+  totalEtb: 1880,
+  currency: "ETB",
+  paymentProvider: "chapa",
+  paymentStatus: "succeeded",
+  createdAt: "2026-08-12T14:10:00.000Z",
+  updatedAt: "2026-08-12T16:18:00.000Z",
+  deliveredAt: "2026-08-12T16:18:00.000Z",
+  deliveryWindow: "Today · 60–90 min",
+};
+
+export const ORDERS: Order[] = [pastDelivered];
+
+export const DELIVERIES: Delivery[] = [
+  {
+    id: "del-past-1",
+    orderId: pastDelivered.id,
+    riderId: "rider-lulit",
+    status: "delivered",
+    deliveredAt: pastDelivered.deliveredAt,
+  },
+];
+
+export const SUBSCRIPTIONS: Subscription[] = [];
+
+export const NOTIFICATIONS: AppNotification[] = [
+  {
+    id: "nt-sara-7",
+    userId: DEMO_USER.id,
+    type: "important_date",
+    title: "Sara's birthday is next week.",
+    body: "We've picked three bouquets we'd recommend.",
+    actionLabel: "See flowers",
+    actionHref: "/shop?person=person-sara&occasion=birthday",
+    createdAt: formatISO(addDays(today, -1)),
+  },
+];
+
+export const PAYMENT_METHODS: PaymentMethod[] = [
+  { id: "pm-telebirr", provider: "telebirr", label: "Telebirr · 0911 ****", isDefault: true },
+  { id: "pm-chapa", provider: "chapa", label: "Chapa", isDefault: false },
+];
+
+function demandDate(
+  id: string,
+  type: ImportantDate["type"],
+  count: number,
+): ImportantDate[] {
+  const next = addDays(today, 1);
+  return Array.from({ length: count }, (_, i) => ({
+    id: `${id}-${i}`,
+    personId: `${id}-person-${i}`,
+    userId: "ext",
+    type,
+    month: next.getMonth() + 1,
+    day: next.getDate(),
+    repeatsAnnually: true,
+    reminderOffsets: [7],
+  }));
+}
+
+export const EXTRA_DEMAND_DATES: ImportantDate[] = [
+  ...demandDate("demand-bday", "birthday", 37),
+  ...demandDate("demand-ann", "anniversary", 12),
+  ...demandDate("demand-other", "wedding", 8),
+];
+
+export const DELIVERY_FEE_ETB = 80;
