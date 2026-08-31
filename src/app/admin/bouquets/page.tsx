@@ -48,7 +48,9 @@ export default function AdminBouquetsPage() {
     <div>
       <div className="flex items-center justify-between">
         <h1 className="font-display text-4xl">{t.admin.bouquets}</h1>
-        <Button onClick={() => setOpen((v) => !v)}>{t.admin.createBouquet}</Button>
+        <Button type="button" onClick={() => setOpen((v) => !v)}>
+          {t.admin.createBouquet}
+        </Button>
       </div>
       {open && (
         <div className="mt-6 grid gap-3 rounded-[24px] bg-paper p-5 md:grid-cols-2">

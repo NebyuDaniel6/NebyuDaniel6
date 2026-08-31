@@ -6,10 +6,12 @@ type Variant = "primary" | "ghost" | "soft" | "dark";
 export function Button({
   variant = "primary",
   className,
+  type = "button",
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant }) {
   return (
     <button
+      type={type}
       className={cn(
         "inline-flex items-center justify-center gap-2 rounded-full px-5 py-3.5 text-[15px] font-medium tracking-wide transition disabled:opacity-50",
         variant === "primary" && "bg-rose text-white shadow-[0_10px_24px_rgba(139,61,74,0.28)] hover:bg-rose-deep",

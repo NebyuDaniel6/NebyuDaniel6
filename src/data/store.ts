@@ -345,7 +345,7 @@ export const useAbebaStore = create<AbebaState>()(
       },
     }),
     {
-      name: "abeba-demo",
+      name: "abeba-demo-v2",
       partialize: (state) => ({
         locale: state.locale,
         session: state.session,

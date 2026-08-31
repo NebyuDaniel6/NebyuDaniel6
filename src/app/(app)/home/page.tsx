@@ -19,7 +19,11 @@ export default function HomePage() {
   const unread = useAbebaStore((s) => s.notifications.filter((n) => !n.readAt).length);
 
   const upcoming = upcomingDates(dates, 21);
-  const featured = upcoming[0];
+  const featured =
+    upcoming.find((item) => {
+      const person = people.find((p) => p.id === item.date.personId);
+      return person?.relationship === "Wife" || person?.relationship === "Husband";
+    }) ?? upcoming[0];
   const featuredPerson = people.find((p) => p.id === featured?.date.personId);
   const forYou = bouquets.filter((b) => b.inventoryStatus !== "out").slice(0, 4);
   const greeting = t.greeting[greetingKey()];

@@ -106,6 +106,9 @@ export default function BouquetDetailPage({
           />
         </div>
 
+        <div className="h-20" />
+      </div>
+      <div className="sticky bottom-0 bg-cream/95 px-5 py-4 backdrop-blur">
         <Button className="w-full" onClick={send}>
           {t.bouquet.sendFlowers}
         </Button>

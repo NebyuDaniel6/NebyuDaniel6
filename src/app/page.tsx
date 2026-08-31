@@ -1,21 +1,12 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAbebaStore } from "@/data/store";
 import { useI18n } from "@/i18n";
-import { Button } from "@/components/ui/Button";
 
 export default function WelcomePage() {
   const { t } = useI18n();
-  const router = useRouter();
   const signIn = useAbebaStore((s) => s.signIn);
-
-  function enter(role: "customer" | "admin" | "rider") {
-    signIn(role);
-    if (role === "admin") router.push("/admin");
-    else if (role === "rider") router.push("/rider");
-    else router.push("/home");
-  }
 
   return (
     <div className="app-canvas">
@@ -28,16 +19,28 @@ export default function WelcomePage() {
           </p>
         </div>
         <div className="space-y-3">
-          <Button className="w-full" onClick={() => enter("customer")}>
+          <Link
+            href="/home"
+            onClick={() => signIn("customer")}
+            className="flex w-full items-center justify-center rounded-full bg-rose px-5 py-3.5 text-[15px] font-medium text-white shadow-[0_10px_24px_rgba(139,61,74,0.28)]"
+          >
             {t.welcome.asCustomer}
-          </Button>
+          </Link>
           <div className="grid grid-cols-2 gap-3">
-            <Button variant="soft" onClick={() => enter("admin")}>
+            <Link
+              href="/admin"
+              onClick={() => signIn("admin")}
+              className="flex items-center justify-center rounded-full bg-blush px-5 py-3.5 text-[15px] font-medium text-rose-deep"
+            >
               {t.welcome.asAdmin}
-            </Button>
-            <Button variant="ghost" className="border border-line" onClick={() => enter("rider")}>
+            </Link>
+            <Link
+              href="/rider"
+              onClick={() => signIn("rider")}
+              className="flex items-center justify-center rounded-full border border-line px-5 py-3.5 text-[15px] font-medium"
+            >
               {t.welcome.asRider}
-            </Button>
+            </Link>
           </div>
           <p className="pt-2 text-center text-xs text-muted">{t.welcome.demoNote}</p>
         </div>
