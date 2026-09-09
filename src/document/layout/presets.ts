@@ -78,7 +78,6 @@ export function resolveFormat(token: string): FormatPreset | null {
     "ig-stories": "instagram-story",
     "facebook-cover": "facebook-cover",
     "fb-cover": "facebook-cover",
-    facebook: "facebook-post",
     poster: "a4-poster",
     a4: "a4-poster",
     print: "a4-poster",

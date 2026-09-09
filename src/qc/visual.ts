@@ -1,10 +1,12 @@
 import { allTextNodes, type DesignDocument, type TextNode } from "../document/types.ts";
 import { contrastRatio } from "./contrast.ts";
+import { measureText } from "../document/fonts.ts";
 import type { QcFinding } from "./types.ts";
 
 function overflow(t: TextNode): boolean {
-  const lines = t.text.split("\n").length;
-  return lines * t.lineHeight > t.height * 1.15;
+  const lines = t.text.split("\n");
+  if (lines.length * t.lineHeight > t.height * 1.15) return true;
+  return lines.some((line) => measureText(line, t.fontFamily, t.fontSize, t.fontWeight).width > t.width * 1.08);
 }
 
 export function visualChecks(doc: DesignDocument): QcFinding[] {

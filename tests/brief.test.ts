@@ -11,6 +11,7 @@ describe("planning", () => {
     expect(brief.formats.map((f) => f.id)).toEqual(
       expect.arrayContaining(["instagram-post", "instagram-story", "facebook-cover", "a4-poster"]),
     );
+    expect(brief.formats.map((f) => f.id)).not.toContain("facebook-post");
     expect(brief.cta.toLowerCase()).toContain("reservations");
     expect(brief.industry).toBe("real-estate");
     expect(brief.outputs).toContain("svg");

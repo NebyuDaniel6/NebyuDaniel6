@@ -177,36 +177,53 @@ function composeArtboard(
   const margin = Math.round(Math.min(format.width, format.height) * (isPrint ? 0.08 : isCover ? 0.06 : 0.09));
 
   const brandLayer = addLayer(art, "Brand");
-  if (input.logoPath) {
-    const logoH = Math.round(format.height * (isCover ? 0.16 : 0.07));
-    const logoW = Math.round(logoH * 2.4);
+  const mark = Math.round(Math.min(format.width, format.height) * 0.014);
+  append(brandLayer, {
+    id: id("rect"),
+    type: "rect",
+    name: "Brand rule",
+    x: margin,
+    y: margin,
+    visible: true,
+    width: mark * 5,
+    height: mark,
+    fill: palette.accent,
+    stroke: null,
+    strokeWidth: 0,
+    radius: 0,
+  });
+  const lockupSize = Math.max(14, Math.round(format.height * (isCover ? 0.045 : 0.028)));
+  append(
+    brandLayer,
+    textNode({
+      name: "Wordmark",
+      role: "label",
+      text: input.brand.name,
+      x: margin,
+      y: margin + mark * 2.2,
+      width: format.width * 0.5,
+      height: lockupSize * 1.3,
+      fontFamily: display,
+      fontWeight: 600,
+      fontSize: lockupSize,
+      lineHeight: lockupSize,
+      fill: palette.text,
+      align: "left",
+    }),
+  );
+  if (input.logoPath && /\.(png|jpe?g)$/i.test(input.logoPath)) {
+    const logoH = Math.round(format.height * (isCover ? 0.12 : 0.06));
     append(brandLayer, {
       id: id("img"),
       type: "image",
       name: "Logo",
-      x: margin,
+      x: format.width - margin - Math.round(logoH * 2.2),
       y: margin,
       visible: true,
       path: input.logoPath,
-      width: logoW,
+      width: Math.round(logoH * 2.2),
       height: logoH,
       fit: "contain",
-    });
-  } else {
-    const mark = Math.round(Math.min(format.width, format.height) * 0.018);
-    append(brandLayer, {
-      id: id("rect"),
-      type: "rect",
-      name: "Brand mark",
-      x: margin,
-      y: margin,
-      visible: true,
-      width: mark * 6,
-      height: mark,
-      fill: palette.accent,
-      stroke: null,
-      strokeWidth: 0,
-      radius: 0,
     });
   }
 
@@ -300,10 +317,21 @@ function composeArtboard(
   );
 
   const action = addLayer(art, "Call to action");
-  const ctaHeight = Math.round(format.height * (isCover ? 0.14 : 0.09));
-  const ctaWidth = Math.min(contentWidth, Math.round(format.width * (isCover ? 0.38 : 0.62)));
+  const ctaHeight = Math.round(format.height * (isCover ? 0.16 : 0.09));
+  const ctaWidth = Math.min(contentWidth, Math.round(format.width * (isCover ? 0.56 : 0.72)));
   const ctaX = margin;
   const ctaY = format.height - margin - ctaHeight;
+  const innerW = ctaWidth * 0.88;
+  const ctaFit = fitFontSize(
+    input.copy.cta,
+    display,
+    700,
+    innerW,
+    ctaHeight * 0.6,
+    Math.round(ctaHeight * 0.34),
+    12,
+    1,
+  );
 
   append(action, {
     id: id("rect"),
@@ -320,21 +348,20 @@ function composeArtboard(
     radius: isPrint ? 0 : Math.round(ctaHeight * 0.08),
   });
 
-  const ctaSize = Math.round(ctaHeight * 0.32);
   append(
     action,
     textNode({
       name: "CTA label",
       role: "cta",
-      text: input.copy.cta,
-      x: ctaX + Math.round(ctaWidth * 0.08),
-      y: ctaY + (ctaHeight - ctaSize) / 2,
-      width: ctaWidth * 0.84,
-      height: ctaSize * 1.2,
+      text: ctaFit.lines.join(" "),
+      x: ctaX,
+      y: ctaY + (ctaHeight - ctaFit.size) / 2,
+      width: ctaWidth,
+      height: ctaFit.size * 1.2,
       fontFamily: display,
       fontWeight: 700,
-      fontSize: ctaSize,
-      lineHeight: ctaSize,
+      fontSize: ctaFit.size,
+      lineHeight: ctaFit.size,
       fill: contrast(palette.accent, rgb(20, 20, 20)) >= 4.5 ? rgb(20, 20, 20) : rgb(255, 255, 255),
       align: "center",
     }),

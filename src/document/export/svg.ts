@@ -42,14 +42,14 @@ function nodeSvg(node: SceneNode): string {
       return `<path id="${esc(node.id)}" data-name="${esc(node.name)}" d="${esc(node.d)}" ${fillAttr(node.fill)} ${strokeAttr(node.stroke, node.strokeWidth)} />`;
     case "text": {
       const lines = node.text.split("\n");
+      const anchor = node.align === "center" ? "middle" : node.align === "right" ? "end" : "start";
+      const x = node.align === "center" ? node.x + node.width / 2 : node.align === "right" ? node.x + node.width : node.x;
       const tspans = lines
         .map((line, i) => {
           const y = node.y + node.fontSize + i * node.lineHeight;
-          return `<tspan x="${node.x}" y="${y}">${esc(line)}</tspan>`;
+          return `<tspan x="${x}" y="${y}">${esc(line)}</tspan>`;
         })
         .join("");
-      const anchor = node.align === "center" ? "middle" : node.align === "right" ? "end" : "start";
-      const x = node.align === "center" ? node.x + node.width / 2 : node.align === "right" ? node.x + node.width : node.x;
       return `<text id="${esc(node.id)}" data-name="${esc(node.name)}" data-role="${node.role}" x="${x}" font-family="${esc(node.fontFamily)}" font-weight="${node.fontWeight}" font-size="${node.fontSize}" fill="${colorToCss(node.fill)}" text-anchor="${anchor}" letter-spacing="${node.letterSpacing}">${tspans}</text>`;
     }
     case "image": {
