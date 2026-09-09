@@ -1,0 +1,20 @@
+id: real-estate
+version: "1.0.0"
+name: Real estate
+category: vertical
+summary: Residential and property campaigns — trust, address, reservation.
+capabilities:
+  - reservation-campaigns
+  - property-hierarchy
+constraints:
+  - No cartoon houses, clip-art skylines, or fake marble.
+  - Lead with the offer (reservations, launch, viewing) not a lifestyle collage.
+keywords:
+  - real-estate
+  - real estate
+  - residence
+  - apartment
+  - villa
+  - property
+  - reservation
+requires_tools: []

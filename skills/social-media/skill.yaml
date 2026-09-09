@@ -1,0 +1,20 @@
+id: social-media
+version: "1.0.0"
+name: Social media
+category: channel
+summary: Platform sizes, safe zones, and short-form hierarchy.
+capabilities:
+  - instagram-post
+  - instagram-story
+  - facebook-cover
+  - facebook-post
+constraints:
+  - Stories need more vertical air and a lower-third CTA.
+  - Covers must remain legible at small preview sizes.
+keywords:
+  - instagram
+  - story
+  - stories
+  - facebook
+  - social
+requires_tools: []

@@ -1,0 +1,27 @@
+id: illustrator
+version: "1.0.0"
+name: Adobe Illustrator
+category: application
+summary: Produce editable vector artwork through the Illustrator connector.
+capabilities:
+  - create-document
+  - artboards
+  - live-text
+  - named-layers
+  - export
+constraints:
+  - Prefer the programmatic document model and ExtendScript over GUI clicking.
+  - On Linux, the svg-document backend is the live path; JSX is compiled for later Illustrator execution.
+  - Never report a live Illustrator session if the app is missing or closed.
+keywords:
+  - illustrator
+  - vector
+  - editable
+  - ai
+requires_tools:
+  - illustrator.create_document
+  - illustrator.inspect
+  - illustrator.export
+  - illustrator.save_source
+requires_connectors:
+  - illustrator

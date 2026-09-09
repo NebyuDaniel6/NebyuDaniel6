@@ -1,0 +1,18 @@
+id: advertising
+version: "1.0.0"
+name: Advertising
+category: channel
+summary: "Conversion-minded messaging: offer, proof, action."
+capabilities:
+  - offer-clarity
+  - cta
+constraints:
+  - Do not bury the action.
+  - Do not write more than one offer per artboard.
+keywords:
+  - campaign
+  - launch
+  - launch
+  - advertise
+  - announcement
+requires_tools: []

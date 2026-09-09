@@ -1,0 +1,15 @@
+id: brand-guidelines
+version: "1.0.0"
+name: Brand guidelines
+category: brand
+summary: Enforce stored guidelines and distinguish rule strength.
+capabilities:
+  - guideline-compliance
+  - memory-strength
+constraints:
+  - inferred_preference must never be treated as explicit_rule.
+keywords:
+  - guidelines
+  - restrictions
+requires_tools:
+  - brand.get

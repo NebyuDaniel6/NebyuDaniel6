@@ -1,0 +1,18 @@
+id: photo-editing
+version: "1.0.0"
+name: Photo editing
+category: craft
+summary: Place and crop supplied photography. Does not hallucinate photos.
+capabilities:
+  - placement
+  - crop
+  - cover-fit
+constraints:
+  - If no photo asset exists, do not generate a fake photograph.
+  - Broken links are errors, not placeholders.
+keywords:
+  - photo
+  - image
+  - photography
+requires_tools:
+  - asset.search

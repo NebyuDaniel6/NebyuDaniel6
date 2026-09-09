@@ -1,0 +1,18 @@
+id: graphic-design
+version: "1.0.0"
+name: Graphic design
+category: craft
+summary: Core visual design judgment — hierarchy, composition, restraint.
+capabilities:
+  - hierarchy
+  - composition
+  - visual-balance
+  - purposeful-design
+constraints:
+  - Do not add decorative effects without a communication job.
+  - Prefer type, space, and brand color over illustration filler.
+keywords:
+  - design
+  - campaign
+  - visual
+requires_tools: []

@@ -1,0 +1,19 @@
+id: print-design
+version: "1.0.0"
+name: Print design
+category: channel
+summary: A4/poster geometry, 300dpi raster, PDF delivery.
+capabilities:
+  - a4
+  - pdf
+  - high-resolution-export
+constraints:
+  - Print artboards are 2480×3508 px at 300dpi for A4.
+  - Keep margins conservative; do not sit type on the trim.
+keywords:
+  - print
+  - poster
+  - a4
+  - pdf
+requires_tools:
+  - illustrator.export

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Creative Department — Operator</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="mast">
+      <div>
+        <p class="eyebrow">Operator console</p>
+        <h1>Creative Department</h1>
+      </div>
+      <p class="status" id="connector-status">Checking connector…</p>
+    </header>
+    <main>
+      <section class="brief-panel">
+        <h2>Brief</h2>
+        <textarea id="brief" rows="7">Create a premium Instagram campaign for our real-estate project announcing that reservations are open. I need 1 Instagram post, 1 story, a Facebook cover, and an A4 poster as printable PDF. Use my existing brand.</textarea>
+        <div class="row">
+          <label>Organization
+            <select id="org"></select>
+          </label>
+          <label>Brand
+            <select id="brand"></select>
+          </label>
+          <label>Project
+            <select id="project"></select>
+          </label>
+        </div>
+        <div class="row">
+          <label class="check"><input type="checkbox" id="auto" checked /> Auto-approve direction &amp; finals</label>
+          <button type="button" id="run">Run job</button>
+          <button type="button" id="seed" class="ghost">Seed sample brand</button>
+        </div>
+      </section>
+      <section class="work-panel">
+        <h2>Production</h2>
+        <p id="task-meta" class="muted">No job yet.</p>
+        <ol id="trace" class="trace"></ol>
+        <div id="qc"></div>
+        <div id="approvals" class="hidden">
+          <p id="approval-copy"></p>
+          <button type="button" id="approve">Approve</button>
+          <button type="button" id="reject" class="ghost">Reject</button>
+        </div>
+        <div id="previews" class="previews"></div>
+      </section>
+    </main>
+    <script src="/app.js"></script>
+  </body>
+</html>
