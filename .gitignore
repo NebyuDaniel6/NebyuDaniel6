@@ -1,0 +1,14 @@
+node_modules/
+dist/
+coverage/
+data/
+*.log
+.env
+.env.local
+.env.*.local
+.DS_Store
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+.vitest/
+.tsx-cache/

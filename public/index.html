@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Creative Studio</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="mast">
+      <div>
+        <p class="eyebrow">Studio plan · local businesses</p>
+        <h1>Creative Studio</h1>
+      </div>
+      <p class="status" id="connector-status">Checking environment…</p>
+    </header>
+    <main>
+      <section class="brief-panel">
+        <h2>What do you need?</h2>
+        <label>Business name
+          <input type="text" id="business" value="Harbor Bakery" />
+        </label>
+        <textarea id="brief" rows="5">Saturday tasting is on. Instagram post and story. Book a table.</textarea>
+        <div class="row colors">
+          <label>Color
+            <input type="color" id="primary" value="#1f3d34" />
+          </label>
+          <label>Accent color
+            <input type="color" id="accent" value="#d4a017" />
+          </label>
+        </div>
+        <div class="row">
+          <label>Font style
+            <select id="font">
+              <option value="modern-sans">Modern sans</option>
+              <option value="elegant-serif">Elegant serif</option>
+              <option value="bold-display">Bold display</option>
+              <option value="friendly">Friendly</option>
+            </select>
+          </label>
+          <label>Design style
+            <select id="style">
+              <option value="editorial">Editorial</option>
+              <option value="bold">Bold</option>
+              <option value="minimal">Minimal</option>
+              <option value="warm" selected>Warm</option>
+              <option value="luxury">Luxury</option>
+            </select>
+          </label>
+        </div>
+        <fieldset class="formats">
+          <legend>Formats</legend>
+          <label class="check"><input type="checkbox" name="format" value="instagram-post" checked /> Instagram post</label>
+          <label class="check"><input type="checkbox" name="format" value="instagram-story" checked /> Instagram story</label>
+          <label class="check"><input type="checkbox" name="format" value="facebook-cover" /> Facebook cover</label>
+          <label class="check"><input type="checkbox" name="format" value="facebook-post" /> Facebook post</label>
+          <label class="check"><input type="checkbox" name="format" value="a4-poster" /> A4 poster</label>
+          <label class="check"><input type="checkbox" name="format" value="web-hero" /> Web hero</label>
+        </fieldset>
+        <div class="row">
+          <label>Open in
+            <select id="app">
+              <option value="illustrator">Illustrator</option>
+              <option value="photoshop">Photoshop</option>
+            </select>
+          </label>
+        </div>
+        <label>Upload a picture
+          <input type="file" id="photo" accept="image/png,image/jpeg,image/webp" />
+        </label>
+        <label class="check"><input type="checkbox" id="photo-idea" checked /> Or get a photo idea from the prompt (no fake photo)</label>
+        <div class="row">
+          <label class="check"><input type="checkbox" id="auto" checked /> Auto-approve direction &amp; finals</label>
+          <button type="button" id="run">Make the campaign</button>
+        </div>
+      </section>
+      <section class="work-panel">
+        <h2>Production</h2>
+        <p id="task-meta" class="muted">No job yet. After restart, the header should show version 0.2.3-studio. This usually takes a few seconds.</p>
+        <ol id="trace" class="trace"></ol>
+        <div id="qc"></div>
+        <div id="approvals" class="hidden">
+          <p id="approval-copy"></p>
+          <button type="button" id="approve">Approve</button>
+          <button type="button" id="reject" class="ghost">Reject</button>
+        </div>
+        <div id="previews" class="previews"></div>
+      </section>
+    </main>
+    <script src="/app.js"></script>
+  </body>
+</html>

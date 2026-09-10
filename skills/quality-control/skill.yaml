@@ -1,0 +1,19 @@
+id: quality-control
+version: "1.0.0"
+name: Quality control
+category: review
+summary: Technical, visual, brand, and brief review before a job can finish.
+capabilities:
+  - technical-qc
+  - visual-qc
+  - brand-qc
+  - brief-qc
+constraints:
+  - A job cannot be approved without a QC report.
+  - Errors force REVISE; warnings do not.
+keywords:
+  - quality
+  - review
+  - qc
+requires_tools:
+  - illustrator.inspect

@@ -1,0 +1,17 @@
+id: typography
+version: "1.0.0"
+name: Typography
+category: craft
+summary: Type hierarchy, sizing, wrapping, and brand typefaces.
+capabilities:
+  - type-scale
+  - wrapping
+  - font-selection
+constraints:
+  - Never outline live text unless a print skill requests outlines.
+  - Substitute fonts only when the requested face is missing, and report the substitution.
+keywords:
+  - type
+  - font
+  - headline
+requires_tools: []

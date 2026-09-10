@@ -1,0 +1,14 @@
+id: photoshop
+version: "1.0.0"
+name: Adobe Photoshop
+category: application
+summary: Future raster connector. Not implemented in this environment.
+capabilities: []
+constraints:
+  - Do not claim Photoshop operations succeeded.
+  - Photoshop is not installed on the current Linux host.
+keywords:
+  - photoshop
+  - psd
+requires_tools: []
+requires_connectors: []

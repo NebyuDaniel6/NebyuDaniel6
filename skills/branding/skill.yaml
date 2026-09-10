@@ -1,0 +1,19 @@
+id: branding
+version: "1.0.0"
+name: Branding
+category: brand
+summary: "Apply the brand system: color, mark, tone, restrictions."
+capabilities:
+  - brand-tokens
+  - logo-lockup
+  - tone
+constraints:
+  - Explicit brand rules outrank inferred taste.
+  - Temporary campaign preferences do not rewrite the brand profile.
+keywords:
+  - brand
+  - logo
+  - identity
+requires_tools:
+  - brand.get
+  - brand.remember

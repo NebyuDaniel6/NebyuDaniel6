@@ -1,0 +1,18 @@
+id: layout
+version: "1.0.0"
+name: Layout
+category: craft
+summary: Grids, margins, alignment, platform-safe composition.
+capabilities:
+  - grids
+  - margins
+  - alignment
+  - artboard-geometry
+constraints:
+  - Respect platform safe zones (stories, covers).
+  - Align edges; do not optically center by guess when a grid exists.
+keywords:
+  - layout
+  - grid
+  - poster
+requires_tools: []
