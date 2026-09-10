@@ -31,6 +31,7 @@ Invocations are persisted to `tool_invocations` with redacted payloads.
 | `illustrator.inspect` | low | Document state |
 | `illustrator.export` | medium | svg/png/jpg/pdf/jsx/json |
 | `illustrator.save_source` | medium | json+svg+jsx |
+| `illustrator.run_extendscript` | medium | Run `.jsx` in Illustrator **on this computer** (macOS AppleScript). Does not move the mouse. |
 | `computer.identify_application` | low | Window title |
 | `computer.screenshot` | low | ffmpeg x11grab |
 | `computer.click` | high | Disabled unless `CREATIVE_AGENT_ALLOW_COMPUTER_CONTROL=1` |
