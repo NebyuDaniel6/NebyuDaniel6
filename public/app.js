@@ -4,13 +4,12 @@ function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-async function api(path, opts) {
-  const res = await fetch(path, {
-    headers: { "content-type": "application/json" },
-    ...opts,
-  });
+async function api(path, opts = {}) {
+  const headers = { ...(opts.headers || {}) };
+  if (opts.body && !headers["content-type"]) headers["content-type"] = "application/json";
+  const res = await fetch(path, { ...opts, headers });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || res.statusText);
+  if (!res.ok) throw new Error(data.error || data.message || res.statusText || `HTTP ${res.status}`);
   return data;
 }
 
@@ -114,17 +113,24 @@ function fileToBase64(file) {
 
 async function pollUntilDone(taskId) {
   const started = Date.now();
+  let lastErr;
   while (Date.now() - started < 90_000) {
-    const snap = await api(`/api/tasks/${taskId}`);
-    renderSnapshot(snap);
-    const secs = Math.round((Date.now() - started) / 1000);
-    if (!terminal(snap)) {
-      document.getElementById("task-meta").textContent = `${snap.task.status} · ${secs}s · ${taskId}`;
+    try {
+      const snap = await api(`/api/tasks/${taskId}`);
+      renderSnapshot(snap);
+      const secs = Math.round((Date.now() - started) / 1000);
+      if (!terminal(snap)) {
+        document.getElementById("task-meta").textContent = `${snap.task.status} · ${secs}s · ${taskId}`;
+      }
+      if (terminal(snap)) return snap;
+      lastErr = null;
+    } catch (e) {
+      lastErr = e;
+      document.getElementById("task-meta").textContent = `Retrying… ${e.message || e}`;
     }
-    if (terminal(snap)) return snap;
     await sleep(400);
   }
-  throw new Error("Still running after 90s. Uncheck extra formats (A4 is large) and try again. Open Illustrator separately — this page no longer waits for it.");
+  throw lastErr || new Error("Still running after 90s. Uncheck extra formats (A4 is large) and try again.");
 }
 
 async function runJob() {
@@ -159,12 +165,10 @@ async function runJob() {
   setBusy(true, "Starting…");
   try {
     const started = await api("/api/jobs", { method: "POST", body: JSON.stringify(body) });
-    if (started.error) throw new Error(started.error);
+    if (started.error) throw new Error(started.error.message || started.error);
     state.lastTaskId = started.task.id;
     renderSnapshot(started);
-    if (terminal(started) && started.task.status !== "planning") {
-      return;
-    }
+    if (terminal(started)) return;
     await pollUntilDone(started.task.id);
   } catch (e) {
     showError(e.message || e);

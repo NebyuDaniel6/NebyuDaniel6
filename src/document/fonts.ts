@@ -7,6 +7,8 @@ const FONT_CANDIDATES: Record<string, string[]> = {
   Inter: [
     "/usr/share/fonts/truetype/macos/Inter-Regular.ttf",
     "/usr/share/fonts/truetype/macos/Inter-Bold.ttf",
+    "/System/Library/Fonts/Supplemental/Arial.ttf",
+    "/Library/Fonts/Arial.ttf",
   ],
   "Inter Bold": ["/usr/share/fonts/truetype/macos/Inter-Bold.ttf"],
   "Public Sans": ["/usr/share/fonts/truetype/macos/PublicSans-Regular.ttf"],
@@ -61,8 +63,10 @@ export function resolveFont(family: string, weight = 400): ResolvedFont {
   }
   const lastResort = [
     "/System/Library/Fonts/Supplemental/Arial.ttf",
+    "/System/Library/Fonts/Supplemental/Times New Roman.ttf",
     "/Library/Fonts/Arial.ttf",
     "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    "/usr/share/fonts/truetype/macos/Inter-Regular.ttf",
   ].find((p) => fs.existsSync(p));
   if (lastResort) {
     return { family: "Arial", file: lastResort, substituted: true, requested: family };

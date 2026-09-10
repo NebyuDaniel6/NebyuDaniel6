@@ -9,6 +9,7 @@ export function getDb(): DatabaseSync {
   singleton = new DatabaseSync(dbPath());
   singleton.exec("PRAGMA foreign_keys = ON;");
   singleton.exec("PRAGMA journal_mode = WAL;");
+  singleton.exec("PRAGMA busy_timeout = 5000;");
   return singleton;
 }
 

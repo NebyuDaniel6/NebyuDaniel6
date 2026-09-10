@@ -6,7 +6,7 @@ import fs from "node:fs";
 import { REPO_ROOT } from "../lib/paths.ts";
 import { probeEnvironment } from "../env/probe.ts";
 import { seedSampleWorld } from "../seed.ts";
-import { continueJob, enqueueJob, hydrateSnapshot, listDeliverables } from "../agent/orchestrator.ts";
+import { continueJob, startJob, hydrateSnapshot, listDeliverables } from "../agent/orchestrator.ts";
 import { listOrgs, listProjects } from "../tenant/service.ts";
 import { listBrands } from "../brand/service.ts";
 import { listTasks, listEvents } from "../tasks/engine.ts";
@@ -22,6 +22,12 @@ import type { StudioInput } from "../studio/types.ts";
 export function createApp(): Hono {
   boot();
   const app = new Hono();
+
+  app.onError((err, c) => {
+    const message = err instanceof Error ? err.message : String(err);
+    log.error("http_error", { message });
+    return c.json({ error: message }, 500);
+  });
 
   app.get("/api/health", (c) => c.json({ ok: true, service: "creative-agent" }));
   app.get("/api/doctor", (c) => c.json(probeEnvironment()));
@@ -54,17 +60,31 @@ export function createApp(): Hono {
     return c.json(searchAssets({ orgId: c.req.param("orgId"), query: c.req.query("q") ?? undefined }));
   });
   app.get("/api/tasks/:taskId", (c) => {
-    const snap = hydrateSnapshot(c.req.param("taskId"));
-    if (!snap) return c.json({ error: "not_found" }, 404);
-    return c.json({
-      ...snap,
-      events: listEvents(snap.task.id),
-      deliverables: listDeliverables(snap.task.id),
-    });
+    try {
+      const snap = hydrateSnapshot(c.req.param("taskId"));
+      if (!snap) return c.json({ error: "not_found" }, 404);
+      return c.json({
+        task: snap.task,
+        status: snap.task.status,
+        waitingFor: snap.waitingFor,
+        error: snap.error,
+        qc: snap.qc,
+        plan: snap.plan,
+        files: snap.files,
+        illustratorRuntime: snap.illustratorRuntime,
+        photoshopRuntime: snap.photoshopRuntime,
+        targetApp: snap.targetApp,
+        trace: snap.trace,
+        events: listEvents(snap.task.id),
+        deliverables: listDeliverables(snap.task.id),
+      });
+    } catch (error) {
+      return c.json({ error: error instanceof Error ? error.message : String(error) }, 500);
+    }
   });
   app.post("/api/jobs", async (c) => {
-    const body = await c.req.json<{
-      brief: string;
+    let body: {
+      brief?: string;
       autoApprove?: boolean;
       businessName?: string;
       primaryColor?: string;
@@ -80,7 +100,12 @@ export function createApp(): Hono {
       orgId?: string;
       brandId?: string;
       projectId?: string;
-    }>();
+    };
+    try {
+      body = await c.req.json();
+    } catch {
+      return c.json({ error: "Invalid JSON body" }, 400);
+    }
     if (!body.brief?.trim()) return c.json({ error: "brief_required" }, 400);
     const studio: StudioInput = {
       businessName: body.businessName,
@@ -96,7 +121,7 @@ export function createApp(): Hono {
       photoMime: body.photoMime,
     };
     try {
-      const task = enqueueJob({
+      const snapshot = await startJob({
         brief: body.brief,
         autoApprove: body.autoApprove,
         studio,
@@ -104,19 +129,19 @@ export function createApp(): Hono {
         brandId: body.brandId,
         projectId: body.projectId,
       });
-      return c.json({
-        task,
-        running: true,
-        trace: { taskId: task.id, spans: [], toolsUsed: [], plan: [], result: task.status },
-      });
+      return c.json(snapshot);
     } catch (error) {
       return c.json({ error: error instanceof Error ? error.message : String(error) }, 500);
     }
   });
   app.post("/api/tasks/:taskId/decision", async (c) => {
-    const body = await c.req.json<{ decision: "approve" | "reject"; note?: string }>();
-    const snapshot = await continueJob(c.req.param("taskId"), body.decision, body.note);
-    return c.json(snapshot);
+    try {
+      const body = await c.req.json<{ decision: "approve" | "reject"; note?: string }>();
+      const snapshot = await continueJob(c.req.param("taskId"), body.decision, body.note);
+      return c.json(snapshot);
+    } catch (error) {
+      return c.json({ error: error instanceof Error ? error.message : String(error) }, 500);
+    }
   });
   app.post("/api/assets", async (c) => {
     const body = await c.req.json<{

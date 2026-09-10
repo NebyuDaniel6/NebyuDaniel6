@@ -66,20 +66,42 @@ export async function invokeTool<I, O>(name: string, input: I, ctx: ToolContext)
   }
 }
 
+function persistPayload(value: unknown): string {
+  try {
+    const summary =
+      value && typeof value === "object" && "document" in (value as object)
+        ? {
+            taskId: (value as { taskId?: string }).taskId,
+            artboards: (value as { document?: { artboards?: unknown[] } }).document?.artboards?.length,
+          }
+        : value;
+    if (summary && typeof summary === "object" && !Array.isArray(summary)) {
+      return JSON.stringify(redactRecord(summary as Record<string, unknown>));
+    }
+    return JSON.stringify(summary ?? null);
+  } catch (error) {
+    return JSON.stringify({ unserializable: true, message: error instanceof Error ? error.message : String(error) });
+  }
+}
+
 function persist(rec: ToolInvocationRecord, ctx: ToolContext): void {
-  getDb()
-    .prepare(
-      `INSERT INTO tool_invocations (id, task_id, tool_name, risk, input_json, output_json, ok, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    )
-    .run(
-      id("inv"),
-      ctx.taskId ?? null,
-      rec.name,
-      rec.risk,
-      JSON.stringify(redactRecord({ input: rec.input as Record<string, unknown> })),
-      JSON.stringify(redactRecord({ output: rec.output as Record<string, unknown> })),
-      rec.ok ? 1 : 0,
-      new Date().toISOString(),
-    );
+  try {
+    getDb()
+      .prepare(
+        `INSERT INTO tool_invocations (id, task_id, tool_name, risk, input_json, output_json, ok, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run(
+        id("inv"),
+        ctx.taskId ?? null,
+        rec.name,
+        rec.risk,
+        persistPayload(rec.input),
+        persistPayload(rec.output),
+        rec.ok ? 1 : 0,
+        new Date().toISOString(),
+      );
+  } catch {
+    /* logging must never fail a job */
+  }
 }

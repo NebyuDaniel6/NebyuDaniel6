@@ -70,22 +70,31 @@ export async function exportSession(
     files.push(writePhotoshopScript(live.document, path.join(dir, "photoshop-job.jsx")));
   }
   let pngs: string[] = [];
-  if (wants.has("png") || wants.has("jpg")) {
-    const rasterDir = path.join(dir, "raster");
-    fs.mkdirSync(rasterDir, { recursive: true });
-    for (const [i, art] of live.document.artboards.entries()) {
-      if (wants.has("png")) {
-        const p = exportArtboardRaster(art, path.join(rasterDir, `${String(i + 1).padStart(2, "0")}.png`), "png");
-        files.push(p);
-        pngs.push(p);
-      }
-      if (wants.has("jpg")) {
-        files.push(exportArtboardRaster(art, path.join(rasterDir, `${String(i + 1).padStart(2, "0")}.jpg`), "jpeg"));
+  try {
+    if (wants.has("png") || wants.has("jpg")) {
+      const rasterDir = path.join(dir, "raster");
+      fs.mkdirSync(rasterDir, { recursive: true });
+      for (const [i, art] of live.document.artboards.entries()) {
+        if (wants.has("png")) {
+          const p = exportArtboardRaster(art, path.join(rasterDir, `${String(i + 1).padStart(2, "0")}.png`), "png");
+          files.push(p);
+          pngs.push(p);
+        }
+        if (wants.has("jpg")) {
+          files.push(exportArtboardRaster(art, path.join(rasterDir, `${String(i + 1).padStart(2, "0")}.jpg`), "jpeg"));
+        }
       }
     }
-  }
-  if (wants.has("pdf")) {
-    files.push(await exportDocumentPdf(live.document, path.join(dir, "campaign.pdf"), pngs));
+    if (wants.has("pdf")) {
+      files.push(await exportDocumentPdf(live.document, path.join(dir, "campaign.pdf"), pngs));
+    }
+  } catch (error) {
+    const note = path.join(dir, "raster-skipped.txt");
+    fs.writeFileSync(
+      note,
+      `Preview raster/PDF skipped: ${error instanceof Error ? error.message : String(error)}\nSVG and JSX were still written.`,
+    );
+    files.push(note);
   }
   return ok({ files, inspect: inspectDocument(live.document) });
 }

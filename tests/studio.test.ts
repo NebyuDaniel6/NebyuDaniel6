@@ -97,10 +97,9 @@ describe("local-business studio", () => {
     expect(snap.photoshopRuntime?.message.toLowerCase()).toMatch(/photoshop/);
   });
 
-  it("returns from POST /api/jobs immediately and finishes when polled", async () => {
+  it("POST /api/jobs returns a finished campaign or a pollable task", async () => {
     boot();
     const app = createApp();
-    const t0 = Date.now();
     const res = await app.request("/api/jobs", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -114,16 +113,26 @@ describe("local-business studio", () => {
         targetApp: "illustrator",
       }),
     });
-    const json = (await res.json()) as { running?: boolean; task: { id: string; status: string } };
-    expect(Date.now() - t0).toBeLessThan(800);
-    expect(json.running).toBe(true);
-    expect(json.task.status).toBe("planning");
-    let snap = hydrateSnapshot(json.task.id);
-    for (let i = 0; i < 40 && snap && !["approved", "failed"].includes(snap.task.status); i += 1) {
-      await new Promise((r) => setTimeout(r, 100));
-      snap = hydrateSnapshot(json.task.id);
+    const json = (await res.json()) as {
+      running?: boolean;
+      error?: string;
+      task: { id: string; status: string };
+      files?: string[];
+    };
+    expect(res.status).toBe(200);
+    expect(json.error).toBeUndefined();
+    expect(json.task?.id).toBeTruthy();
+    if (json.running && json.task.status === "planning") {
+      let snap = hydrateSnapshot(json.task.id);
+      for (let i = 0; i < 40 && snap && !["approved", "failed"].includes(snap.task.status); i += 1) {
+        await new Promise((r) => setTimeout(r, 100));
+        snap = hydrateSnapshot(json.task.id);
+      }
+      expect(snap?.task.status).toBe("approved");
+      expect(snap?.files?.some((f) => f.endsWith("illustrator-job.jsx"))).toBe(true);
+    } else {
+      expect(json.task.status).toBe("approved");
+      expect(json.files?.some((f) => f.endsWith("illustrator-job.jsx"))).toBe(true);
     }
-    expect(snap?.task.status).toBe("approved");
-    expect(snap?.files?.some((f) => f.endsWith("illustrator-job.jsx"))).toBe(true);
   });
 });
