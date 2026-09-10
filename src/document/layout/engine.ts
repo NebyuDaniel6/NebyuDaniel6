@@ -2,8 +2,9 @@ import type { BrandProfile } from "../../brand/types.ts";
 import type { BrandMemory } from "../../brand/types.ts";
 import { id } from "../../lib/ids.ts";
 import { addArtboard, addLayer, append, emptyDocument } from "../ops.ts";
-import { fitFontSize, resolveFont } from "../fonts.ts";
+import { fitFontSize, resolveFont, wrapText } from "../fonts.ts";
 import { hexToRgb, rgb, type DesignDocument, type RgbColor, type TextNode } from "../types.ts";
+import type { DesignStyleId } from "../../studio/types.ts";
 import type { FormatPreset } from "./presets.ts";
 
 export interface LayoutCopy {
@@ -20,6 +21,9 @@ export interface LayoutInput {
   copy: LayoutCopy;
   formats: FormatPreset[];
   logoPath?: string;
+  photoPath?: string;
+  photoIdea?: string;
+  designStyle?: DesignStyleId;
   variationIndex: number;
 }
 
@@ -49,7 +53,17 @@ function contrast(a: RgbColor, b: RgbColor): number {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-export function pickPalette(brand: BrandProfile, variationIndex: number): {
+function darkFieldFor(style: DesignStyleId | undefined, variationIndex: number): boolean {
+  if (style === "luxury" || style === "bold") return true;
+  if (style === "editorial" || style === "minimal" || style === "warm") return false;
+  return variationIndex % 2 === 0;
+}
+
+export function pickPalette(
+  brand: BrandProfile,
+  variationIndex: number,
+  designStyle?: DesignStyleId,
+): {
   background: RgbColor;
   text: RgbColor;
   accent: RgbColor;
@@ -63,9 +77,9 @@ export function pickPalette(brand: BrandProfile, variationIndex: number): {
   const textToken = colors.find((c) => c.role === "text");
   const cream = parseHex(backgroundToken?.hex ?? "#F4EFE6");
   const ink = parseHex(textToken?.hex ?? "#1A1A1A");
+  const warmCream = designStyle === "warm" ? rgb(246, 232, 214) : cream;
 
-  const darkMode = variationIndex % 2 === 0;
-  if (darkMode) {
+  if (darkFieldFor(designStyle, variationIndex)) {
     const text = contrast(primary, rgb(255, 255, 255)) >= 4.5 ? rgb(255, 255, 255) : cream;
     return {
       background: primary,
@@ -84,7 +98,7 @@ export function pickPalette(brand: BrandProfile, variationIndex: number): {
     };
   }
   return {
-    background: cream,
+    background: warmCream,
     text: ink,
     accent,
     muted: rgb(90, 90, 90),
@@ -100,7 +114,10 @@ function bodyFamily(brand: BrandProfile): string {
   return brand.typefaces.find((t) => t.role === "body")?.family ?? displayFamily(brand);
 }
 
-function textNode(partial: Omit<TextNode, "id" | "type" | "visible" | "fontStyle" | "letterSpacing"> & Partial<Pick<TextNode, "fontStyle" | "letterSpacing">>): TextNode {
+function textNode(
+  partial: Omit<TextNode, "id" | "type" | "visible" | "fontStyle" | "letterSpacing"> &
+    Partial<Pick<TextNode, "fontStyle" | "letterSpacing">>,
+): TextNode {
   return {
     id: id("text"),
     type: "text",
@@ -115,12 +132,33 @@ function rejectedStyles(memories: BrandMemory[]): string[] {
   return memories.filter((m) => m.strength === "rejected_concept").map((m) => m.content.toLowerCase());
 }
 
+function marginRatio(format: FormatPreset, style: DesignStyleId | undefined): number {
+  const isCover = format.id === "facebook-cover";
+  const isPrint = format.kind === "print";
+  const base = isPrint ? 0.08 : isCover ? 0.06 : 0.09;
+  if (style === "bold") return Math.max(0.05, base * 0.75);
+  if (style === "minimal" || style === "editorial") return base * 1.15;
+  return base;
+}
+
+function headlineScale(style: DesignStyleId | undefined): number {
+  if (style === "bold") return 1.12;
+  if (style === "minimal") return 0.88;
+  return 1;
+}
+
 export function layoutCampaign(input: LayoutInput): LayoutResult {
   const notes: string[] = [];
   const substitutions: string[] = [];
   const rejected = rejectedStyles(input.memories);
   if (rejected.some((r) => r.includes("gradient") || r.includes("glow") || r.includes("3d"))) {
     notes.push("Rejected decorative styles remembered; using flat color fields and type hierarchy only.");
+  }
+  if (input.photoPath) notes.push("Placed the uploaded photograph in a reserved photo well on each format.");
+  else if (input.photoIdea) {
+    notes.push(
+      "No photograph was uploaded. Photo wells show a shoot direction from the brief — not a generated fake photo.",
+    );
   }
 
   const display = displayFamily(input.brand);
@@ -131,13 +169,38 @@ export function layoutCampaign(input: LayoutInput): LayoutResult {
   }
 
   const doc = emptyDocument(input.name);
-  const palette = pickPalette(input.brand, input.variationIndex);
+  const palette = pickPalette(input.brand, input.variationIndex, input.designStyle);
 
   for (const format of input.formats) {
     composeArtboard(doc, format, input, palette, display, body);
   }
 
   return { document: doc, fontSubstitutions: substitutions, notes };
+}
+
+function photoRectFor(
+  format: FormatPreset,
+  wantsPhoto: boolean,
+): { x: number; y: number; width: number; height: number } | null {
+  if (!wantsPhoto) return null;
+  const isCover = format.id === "facebook-cover";
+  const isStory = format.id === "instagram-story";
+  const isPrint = format.kind === "print";
+  if (isCover) {
+    return {
+      x: Math.round(format.width * 0.56),
+      y: 0,
+      width: Math.round(format.width * 0.44),
+      height: format.height,
+    };
+  }
+  if (isStory) {
+    return { x: 0, y: 0, width: format.width, height: Math.round(format.height * 0.46) };
+  }
+  if (isPrint) {
+    return { x: 0, y: 0, width: format.width, height: Math.round(format.height * 0.34) };
+  }
+  return { x: 0, y: 0, width: format.width, height: Math.round(format.height * 0.46) };
 }
 
 function composeArtboard(
@@ -174,18 +237,124 @@ function composeArtboard(
   const isCover = format.id === "facebook-cover";
   const isStory = format.id === "instagram-story";
   const isPrint = format.kind === "print";
-  const margin = Math.round(Math.min(format.width, format.height) * (isPrint ? 0.08 : isCover ? 0.06 : 0.09));
+  const margin = Math.round(Math.min(format.width, format.height) * marginRatio(format, input.designStyle));
+  const wantsPhoto = Boolean(input.photoPath || input.photoIdea);
+  const photoBox = photoRectFor(format, wantsPhoto);
+  const kickerColor =
+    contrast(palette.accent, palette.background) >= 3 ? palette.accent : palette.panel;
+
+  if (photoBox) {
+    const photoLayer = addLayer(art, "Photograph");
+    if (input.photoPath && /\.(png|jpe?g|webp)$/i.test(input.photoPath)) {
+      append(photoLayer, {
+        id: id("clip"),
+        type: "clipGroup",
+        name: "Photo crop",
+        x: photoBox.x,
+        y: photoBox.y,
+        visible: true,
+        clip: {
+          id: id("rect"),
+          type: "rect",
+          name: "Photo mask",
+          x: photoBox.x,
+          y: photoBox.y,
+          visible: true,
+          width: photoBox.width,
+          height: photoBox.height,
+          fill: null,
+          stroke: null,
+          strokeWidth: 0,
+          radius: 0,
+        },
+        children: [
+          {
+            id: id("img"),
+            type: "image",
+            name: "Campaign photo",
+            x: photoBox.x,
+            y: photoBox.y,
+            visible: true,
+            path: input.photoPath,
+            width: photoBox.width,
+            height: photoBox.height,
+            fit: "cover",
+          },
+        ],
+      });
+    } else {
+      append(photoLayer, {
+        id: id("rect"),
+        type: "rect",
+        name: "Photo well",
+        x: photoBox.x,
+        y: photoBox.y,
+        visible: true,
+        width: photoBox.width,
+        height: photoBox.height,
+        fill: luminance(palette.background) > 0.45 ? palette.background : palette.panel,
+        stroke: kickerColor,
+        strokeWidth: Math.max(2, Math.round(photoBox.height * 0.006)),
+        radius: 0,
+      });
+      const wellMargin = Math.round(Math.min(photoBox.width, photoBox.height) * 0.08);
+      const idea = input.photoIdea ?? "Photograph the real place, product, or people from this brief.";
+      const ideaSize = Math.max(24, Math.round(photoBox.height * 0.04));
+      const ideaLines = wrapText(idea, body, ideaSize, photoBox.width - wellMargin * 2, 400);
+      append(
+        photoLayer,
+        textNode({
+          name: "Photo direction label",
+          role: "label",
+          text: "PHOTO DIRECTION",
+          x: photoBox.x + wellMargin,
+          y: photoBox.y + wellMargin,
+          width: photoBox.width - wellMargin * 2,
+          height: ideaSize * 1.4,
+          fontFamily: body,
+          fontWeight: 600,
+          fontSize: 24,
+          lineHeight: 28,
+          fill: palette.text,
+          align: "left",
+          letterSpacing: 1.5,
+        }),
+      );
+      append(
+        photoLayer,
+        textNode({
+          name: "Photo direction",
+          role: "body",
+          text: ideaLines.slice(0, 6).join("\n"),
+          x: photoBox.x + wellMargin,
+          y: photoBox.y + wellMargin + 40,
+          width: photoBox.width - wellMargin * 2,
+          height: Math.min(photoBox.height - wellMargin * 3, Math.max(ideaLines.length, 1) * ideaSize * 1.25),
+          fontFamily: body,
+          fontWeight: 400,
+          fontSize: ideaSize,
+          lineHeight: ideaSize * 1.25,
+          fill: palette.text,
+          align: "left",
+        }),
+      );
+    }
+  }
+
+  const typeTop = photoBox && !isCover ? photoBox.height + Math.round(margin * 0.4) : margin;
+  const contentRight = photoBox && isCover ? photoBox.x : format.width;
+  const contentWidth = contentRight - margin * 2;
 
   const brandLayer = addLayer(art, "Brand");
-  const mark = Math.round(Math.min(format.width, format.height) * 0.014);
+  const mark = Math.round(Math.min(format.width, format.height) * (input.designStyle === "minimal" ? 0.008 : 0.014));
   append(brandLayer, {
     id: id("rect"),
     type: "rect",
     name: "Brand rule",
     x: margin,
-    y: margin,
+    y: typeTop,
     visible: true,
-    width: mark * 5,
+    width: mark * (input.designStyle === "bold" ? 8 : 5),
     height: mark,
     fill: palette.accent,
     stroke: null,
@@ -200,8 +369,8 @@ function composeArtboard(
       role: "label",
       text: input.brand.name,
       x: margin,
-      y: margin + mark * 2.2,
-      width: format.width * 0.5,
+      y: typeTop + mark * 2.2,
+      width: contentWidth,
       height: lockupSize * 1.3,
       fontFamily: display,
       fontWeight: 600,
@@ -211,7 +380,7 @@ function composeArtboard(
       align: "left",
     }),
   );
-  if (input.logoPath && /\.(png|jpe?g)$/i.test(input.logoPath)) {
+  if (input.logoPath && /\.(png|jpe?g)$/i.test(input.logoPath) && !photoBox) {
     const logoH = Math.round(format.height * (isCover ? 0.12 : 0.06));
     append(brandLayer, {
       id: id("img"),
@@ -228,8 +397,7 @@ function composeArtboard(
   }
 
   const typeLayer = addLayer(art, "Typography");
-  const contentWidth = format.width - margin * 2;
-  const kickerY = margin + Math.round(format.height * (isCover ? 0.22 : isStory ? 0.22 : 0.2));
+  const kickerY = typeTop + mark * 2.2 + lockupSize * 1.6;
   const kickerSize = Math.max(14, Math.round(format.height * (isPrint ? 0.014 : 0.018)));
 
   append(
@@ -246,14 +414,16 @@ function composeArtboard(
       fontWeight: 600,
       fontSize: kickerSize,
       lineHeight: kickerSize * 1.2,
-      fill: palette.accent,
+      fill: kickerColor,
       align: "left",
       letterSpacing: 3,
     }),
   );
 
-  const headlineMaxH = format.height * (isCover ? 0.28 : isStory ? 0.28 : 0.32);
-  const headlineMax = Math.round(format.height * (isCover ? 0.14 : isStory ? 0.09 : isPrint ? 0.07 : 0.11));
+  const headlineMaxH = format.height * (isCover ? 0.28 : isStory ? 0.22 : 0.28) * (photoBox && !isCover ? 0.7 : 1);
+  const headlineMax = Math.round(
+    format.height * (isCover ? 0.14 : isStory ? 0.09 : isPrint ? 0.07 : 0.11) * headlineScale(input.designStyle),
+  );
   const fitted = fitFontSize(
     input.copy.headline,
     display,
@@ -291,8 +461,8 @@ function composeArtboard(
     input.copy.subhead,
     body,
     400,
-    contentWidth * (isCover ? 0.7 : 0.92),
-    format.height * 0.16,
+    contentWidth * (isCover ? 0.95 : 0.92),
+    format.height * (photoBox && !isCover ? 0.1 : 0.16),
     subMax,
     14,
     4,
@@ -305,7 +475,7 @@ function composeArtboard(
       text: subFit.lines.join("\n"),
       x: margin,
       y: headlineY + headlineHeight + Math.round(format.height * 0.03),
-      width: contentWidth * (isCover ? 0.7 : 1),
+      width: contentWidth,
       height: subFit.lines.length * subFit.size * 1.25,
       fontFamily: body,
       fontWeight: 400,
@@ -317,8 +487,8 @@ function composeArtboard(
   );
 
   const action = addLayer(art, "Call to action");
-  const ctaHeight = Math.round(format.height * (isCover ? 0.16 : 0.09));
-  const ctaWidth = Math.min(contentWidth, Math.round(format.width * (isCover ? 0.56 : 0.72)));
+  const ctaHeight = Math.round(format.height * (isCover ? 0.16 : input.designStyle === "minimal" ? 0.07 : 0.09));
+  const ctaWidth = Math.min(contentWidth, Math.round(format.width * (isCover ? 0.5 : 0.72)));
   const ctaX = margin;
   const ctaY = format.height - margin - ctaHeight;
   const innerW = ctaWidth * 0.88;
@@ -345,7 +515,7 @@ function composeArtboard(
     fill: palette.accent,
     stroke: null,
     strokeWidth: 0,
-    radius: isPrint ? 0 : Math.round(ctaHeight * 0.08),
+    radius: isPrint || input.designStyle === "editorial" ? 0 : Math.round(ctaHeight * 0.08),
   });
 
   append(

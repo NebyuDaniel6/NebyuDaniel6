@@ -1,21 +1,29 @@
 import fs from "node:fs";
-import type { DesignDocument, RgbColor, SceneNode } from "../types.ts";
+import type { Artboard, DesignDocument, RgbColor, SceneNode } from "../types.ts";
+
+const ARTBOARD_GAP = 120;
 
 function rgbJs(c: RgbColor): string {
   return `(function(){var c=new RGBColor();c.red=${c.r};c.green=${c.g};c.blue=${c.b};return c;})()`;
 }
 
-function yIll(artHeight: number, y: number): string {
-  return `${artHeight - y}`;
+/** Illustrator Y-up. Artboards in this compiler sit on a shared baseline y=0. */
+function topY(artHeight: number, y: number): number {
+  return artHeight - y;
 }
 
-function emitNode(artHeight: number, node: SceneNode, parent: string): string[] {
+function ident(id: string): string {
+  return id.replace(/[^a-zA-Z0-9]/g, "_");
+}
+
+function emitNode(art: Artboard, originX: number, node: SceneNode, parent: string): string[] {
   if (!node.visible) return [];
+  const x = originX + node.x;
   const lines: string[] = [];
   switch (node.type) {
     case "rect": {
       lines.push(`(function(){
-  var r = ${parent}.pathItems.rectangle(${yIll(artHeight, node.y)}, ${node.x}, ${node.width}, ${node.height});
+  var r = ${parent}.pathItems.rectangle(${topY(art.height, node.y)}, ${x}, ${node.width}, ${node.height});
   r.name = ${JSON.stringify(node.name)};
   ${node.fill ? `r.filled = true; r.fillColor = ${rgbJs(node.fill)};` : "r.filled = false;"}
   ${node.stroke ? `r.stroked = true; r.strokeColor = ${rgbJs(node.stroke)}; r.strokeWidth = ${node.strokeWidth};` : "r.stroked = false;"}
@@ -24,7 +32,7 @@ function emitNode(artHeight: number, node: SceneNode, parent: string): string[] 
     }
     case "ellipse": {
       lines.push(`(function(){
-  var e = ${parent}.pathItems.ellipse(${yIll(artHeight, node.y)}, ${node.x}, ${node.width}, ${node.height});
+  var e = ${parent}.pathItems.ellipse(${topY(art.height, node.y)}, ${x}, ${node.width}, ${node.height});
   e.name = ${JSON.stringify(node.name)};
   ${node.fill ? `e.filled = true; e.fillColor = ${rgbJs(node.fill)};` : "e.filled = false;"}
   e.stroked = false;
@@ -34,7 +42,7 @@ function emitNode(artHeight: number, node: SceneNode, parent: string): string[] 
     case "text": {
       lines.push(`(function(){
   var t = ${parent}.textFrames.areaText(
-    ${parent}.pathItems.rectangle(${yIll(artHeight, node.y)}, ${node.x}, ${node.width}, ${node.height})
+    ${parent}.pathItems.rectangle(${topY(art.height, node.y)}, ${x}, ${node.width}, ${node.height})
   );
   t.name = ${JSON.stringify(node.name)};
   t.contents = ${JSON.stringify(node.text)};
@@ -54,8 +62,8 @@ function emitNode(artHeight: number, node: SceneNode, parent: string): string[] 
     var item = ${parent}.placedItems.add();
     item.file = f;
     item.name = ${JSON.stringify(node.name)};
-    item.left = ${node.x};
-    item.top = ${yIll(artHeight, node.y)};
+    item.left = ${x};
+    item.top = ${topY(art.height, node.y)};
     item.width = ${node.width};
     item.height = ${node.height};
   } catch (e) {
@@ -70,10 +78,11 @@ function emitNode(artHeight: number, node: SceneNode, parent: string): string[] 
     }
     case "group":
     case "clipGroup": {
-      lines.push(`var g_${node.id.replace(/[^a-zA-Z0-9]/g, "_")} = ${parent}.groupItems.add();`);
-      lines.push(`g_${node.id.replace(/[^a-zA-Z0-9]/g, "_")}.name = ${JSON.stringify(node.name)};`);
+      const g = `g_${ident(node.id)}`;
+      lines.push(`var ${g} = ${parent}.groupItems.add();`);
+      lines.push(`${g}.name = ${JSON.stringify(node.name)};`);
       for (const child of node.children) {
-        lines.push(...emitNode(artHeight, node.type === "clipGroup" ? child : child, `g_${node.id.replace(/[^a-zA-Z0-9]/g, "_")}`));
+        lines.push(...emitNode(art, originX, child, g));
       }
       break;
     }
@@ -81,34 +90,50 @@ function emitNode(artHeight: number, node: SceneNode, parent: string): string[] 
   return lines;
 }
 
+export function artboardDocumentOrigins(doc: DesignDocument): number[] {
+  return doc.artboards.map((art, index) => {
+    if (Number.isFinite(art.x)) return art.x;
+    return doc.artboards.slice(0, index).reduce((acc, a) => acc + a.width + ARTBOARD_GAP, 0);
+  });
+}
+
 export function compileExtendScript(doc: DesignDocument): string {
+  const first = doc.artboards[0];
+  const origins = artboardDocumentOrigins(doc);
   const body: string[] = [];
   body.push(`#target illustrator`);
+  body.push(`// One Illustrator artboard per format. Coordinates are offset so artwork is NOT stacked on artboard 1.`);
   body.push(`app.userInteractionLevel = UserInteractionLevel.DONTDISPLAYALERTS;`);
-  body.push(`var doc = app.documents.add(DocumentColorSpace.${doc.colorMode}, ${doc.artboards[0]?.width ?? 1080}, ${doc.artboards[0]?.height ?? 1080});`);
+  body.push(
+    `var doc = app.documents.add(DocumentColorSpace.${doc.colorMode}, ${first?.width ?? 1080}, ${first?.height ?? 1080});`,
+  );
   body.push(`doc.name = ${JSON.stringify(doc.name)};`);
 
   doc.artboards.forEach((art, index) => {
+    const originX = origins[index] ?? 0;
+    const rect = `[${originX}, ${art.height}, ${originX + art.width}, 0]`;
     if (index === 0) {
+      body.push(`doc.artboards[0].artboardRect = ${rect};`);
       body.push(`doc.artboards[0].name = ${JSON.stringify(art.name)};`);
-      body.push(`doc.artboards[0].artboardRect = [0, ${art.height}, ${art.width}, 0];`);
     } else {
-      body.push(`doc.artboards.add([${art.x}, ${art.height}, ${art.x + art.width}, 0]);`);
-      body.push(`doc.artboards[${index}].name = ${JSON.stringify(art.name)};`);
+      body.push(`var ab${index} = doc.artboards.add(${rect});`);
+      body.push(`ab${index}.name = ${JSON.stringify(art.name)};`);
     }
     body.push(`doc.artboards.setActiveArtboardIndex(${index});`);
+    const layerVar = `abLayer_${index}`;
+    body.push(`var ${layerVar} = doc.layers.add();`);
+    body.push(`${layerVar}.name = ${JSON.stringify(`${String(index + 1).padStart(2, "0")} ${art.name}`)};`);
     for (const layer of art.layers) {
-      body.push(`var layer_${index}_${layer.id.replace(/[^a-zA-Z0-9]/g, "_")} = doc.layers.add();`);
-      const lname = `layer_${index}_${layer.id.replace(/[^a-zA-Z0-9]/g, "_")}`;
-      body.push(`${lname}.name = ${JSON.stringify(layer.name)};`);
-      body.push(`${lname}.visible = ${layer.visible ? "true" : "false"};`);
+      const g = `grp_${index}_${ident(layer.id)}`;
+      body.push(`var ${g} = ${layerVar}.groupItems.add();`);
+      body.push(`${g}.name = ${JSON.stringify(layer.name)};`);
       for (const child of layer.children) {
-        body.push(...emitNode(art.height, child, lname));
+        body.push(...emitNode(art, originX, child, g));
       }
     }
   });
 
-  body.push(`// Caller is responsible for save/export.`);
+  body.push(`try { doc.layers.getByName("Layer 1").remove(); } catch (e) {}`);
   return body.join("\n");
 }
 

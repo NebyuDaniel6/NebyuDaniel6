@@ -14,7 +14,7 @@ export function addArtboard(
     name: input.name,
     width: input.width,
     height: input.height,
-    x: doc.artboards.reduce((acc, a) => acc + a.width + 80, 0),
+    x: doc.artboards.reduce((acc, a) => acc + a.width + 120, 0),
     y: 0,
     background: input.background,
     layers: [],

@@ -12,6 +12,11 @@ const FONT_CANDIDATES: Record<string, string[]> = {
   "Public Sans": ["/usr/share/fonts/truetype/macos/PublicSans-Regular.ttf"],
   "Source Sans 3": ["/usr/share/fonts/truetype/macos/SourceSans3-Regular.ttf"],
   "JetBrains Mono": ["/usr/share/fonts/truetype/macos/JetBrainsMono-Regular.ttf"],
+  "Noto Serif": [
+    "/usr/share/fonts/truetype/noto/NotoSerif-Regular.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf",
+  ],
+  "DejaVu Serif": ["/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf"],
 };
 
 const WEIGHT_FILES: Record<string, Record<number, string>> = {
@@ -24,6 +29,14 @@ const WEIGHT_FILES: Record<string, Record<number, string>> = {
   "Public Sans": {
     400: "/usr/share/fonts/truetype/macos/PublicSans-Regular.ttf",
     700: "/usr/share/fonts/truetype/macos/PublicSans-Bold.ttf",
+  },
+  "Noto Serif": {
+    400: "/usr/share/fonts/truetype/noto/NotoSerif-Regular.ttf",
+    700: "/usr/share/fonts/truetype/noto/NotoSerif-Bold.ttf",
+  },
+  "DejaVu Serif": {
+    400: "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf",
+    700: "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf",
   },
 };
 

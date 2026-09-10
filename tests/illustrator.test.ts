@@ -73,5 +73,6 @@ describe("illustrator connector", () => {
     const jsx = compileExtendScript(doc);
     expect(jsx).toContain("#target illustrator");
     expect(jsx).toContain("textFrames");
+    expect(jsx).toContain("artboardRect");
   });
 });

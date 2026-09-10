@@ -1,10 +1,12 @@
 import { getDb } from "../db/client.ts";
 import { id } from "../lib/ids.ts";
+import type { StudioPrefs } from "../studio/types.ts";
 import { canTransition, type TaskStatus } from "./states.ts";
 
 export interface ApprovalPolicy {
   direction: "auto" | "require";
   final: "auto" | "require";
+  studio?: StudioPrefs;
 }
 
 export interface TaskRecord {

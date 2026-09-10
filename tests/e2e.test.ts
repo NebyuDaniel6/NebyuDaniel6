@@ -35,6 +35,26 @@ describe("end-to-end campaign", () => {
     }
     expect(snap.qc?.verdict).toBe("pass");
     expect(snap.illustratorRuntime?.attempted).toBe(false);
-    expect(snap.illustratorRuntime?.message.toLowerCase()).toMatch(/linux|not available/);
+    expect(snap.illustratorRuntime?.message.toLowerCase()).toMatch(/linux|not available|artboard/);
+  });
+
+  it("does not require org/brand/project when studio prefs are provided", async () => {
+    boot();
+    const snap = await startJob({
+      brief: "Now open. Instagram post. Book now.",
+      autoApprove: true,
+      studio: {
+        businessName: "Riverside Cafe",
+        primaryColor: "#14221c",
+        accentColor: "#c4a35a",
+        fontStyle: "modern-sans",
+        designStyle: "editorial",
+        targetApp: "illustrator",
+        formats: ["instagram-post"],
+      },
+    });
+    expect(snap.error).toBeUndefined();
+    expect(snap.task.status).toBe("approved");
+    expect(snap.files?.some((f) => f.endsWith(".svg"))).toBe(true);
   });
 });

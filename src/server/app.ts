@@ -18,6 +18,7 @@ import { getLatestTrace } from "../observability/store.ts";
 import { ingestAsset } from "../assets/service.ts";
 import { log } from "../lib/logger.ts";
 import { boot } from "../bootstrap.ts";
+import type { StudioInput } from "../studio/types.ts";
 
 export function createApp(): Hono {
   boot();
@@ -29,7 +30,16 @@ export function createApp(): Hono {
   app.get("/api/skills", (c) => c.json(loadSkills().map((s) => ({ id: s.id, version: s.version, name: s.name, summary: s.summary }))));
   app.get("/api/connectors", (c) => {
     const illustrator = getConnector("illustrator");
-    return c.json({ illustrator: illustrator?.health() ?? null });
+    return c.json({
+      illustrator: illustrator?.health() ?? null,
+      photoshop: {
+        available: false,
+        backend: "extendscript-file",
+        application: "Adobe Photoshop",
+        message:
+          "Photoshop is not on this Linux host. Jobs write photoshop-job.jsx (one document per format) to open on a Mac.",
+      },
+    });
   });
   app.post("/api/seed", (c) => c.json(seedSampleWorld()));
   app.get("/api/orgs", (c) => {
@@ -56,13 +66,45 @@ export function createApp(): Hono {
   });
   app.post("/api/jobs", async (c) => {
     const body = await c.req.json<{
-      orgId: string;
-      brandId: string;
-      projectId: string;
       brief: string;
       autoApprove?: boolean;
+      businessName?: string;
+      primaryColor?: string;
+      accentColor?: string;
+      fontStyle?: string;
+      designStyle?: string;
+      targetApp?: string;
+      formats?: string[];
+      photoFromPrompt?: boolean;
+      photoBase64?: string;
+      photoFilename?: string;
+      photoMime?: string;
+      orgId?: string;
+      brandId?: string;
+      projectId?: string;
     }>();
-    const snapshot = await startJob(body);
+    if (!body.brief?.trim()) return c.json({ error: "brief_required" }, 400);
+    const studio: StudioInput = {
+      businessName: body.businessName,
+      primaryColor: body.primaryColor,
+      accentColor: body.accentColor,
+      fontStyle: body.fontStyle,
+      designStyle: body.designStyle,
+      targetApp: body.targetApp,
+      formats: body.formats,
+      photoFromPrompt: body.photoFromPrompt,
+      photoBase64: body.photoBase64,
+      photoFilename: body.photoFilename,
+      photoMime: body.photoMime,
+    };
+    const snapshot = await startJob({
+      brief: body.brief,
+      autoApprove: body.autoApprove,
+      studio,
+      orgId: body.orgId,
+      brandId: body.brandId,
+      projectId: body.projectId,
+    });
     return c.json(snapshot);
   });
   app.post("/api/tasks/:taskId/decision", async (c) => {
@@ -124,5 +166,5 @@ export async function serve(port: number): Promise<void> {
   const app = createApp();
   log.info("listening", { port });
   nodeServe({ fetch: app.fetch, port, hostname: "0.0.0.0" });
-  console.log(`Creative Agent operator console → http://127.0.0.1:${port}`);
+  console.log(`Creative Studio → http://127.0.0.1:${port}`);
 }

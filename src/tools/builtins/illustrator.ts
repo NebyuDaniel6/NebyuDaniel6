@@ -48,7 +48,7 @@ export function registerIllustratorTools(): void {
     permissions: [{ name: "illustrator.export", description: "Export documents" }],
     inputSchema: z.object({
       taskId: z.string(),
-      formats: z.array(z.enum(["svg", "png", "jpg", "pdf", "jsx", "json"])).optional(),
+      formats: z.array(z.enum(["svg", "png", "jpg", "pdf", "jsx", "psjsx", "json"])).optional(),
     }),
     outputSchema: z.any(),
     async execute(input: { taskId: string; formats?: string[] }) {

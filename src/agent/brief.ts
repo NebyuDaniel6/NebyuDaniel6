@@ -21,7 +21,10 @@ const INDUSTRY_HINTS: Array<[RegExp, string]> = [
   [/tech|saas|software/i, "technology"],
 ];
 
-export function parseBrief(raw: string): ParsedBrief {
+export function parseBrief(
+  raw: string,
+  options: { formatIds?: string[]; businessName?: string } = {},
+): ParsedBrief {
   const formats: FormatPreset[] = [];
   const seen = new Set<string>();
   const add = (preset: FormatPreset | null | undefined) => {
@@ -31,16 +34,24 @@ export function parseBrief(raw: string): ParsedBrief {
     }
   };
 
-  if (/instagram\s+(post|posts)/i.test(raw) || /ig\s+post/i.test(raw)) add(FORMAT_PRESETS["instagram-post"]);
-  if (/stor(y|ies)/i.test(raw)) add(FORMAT_PRESETS["instagram-story"]);
-  if (/facebook\s+cover|fb\s+cover/i.test(raw)) add(FORMAT_PRESETS["facebook-cover"]);
-  if (/facebook(?!\s+cover)/i.test(raw)) add(FORMAT_PRESETS["facebook-post"]);
-  if (/\ba4\b|poster|print/i.test(raw)) add(FORMAT_PRESETS["a4-poster"]);
-  if (/pdf/i.test(raw) && !formats.some((f) => f.id === "a4-poster")) add(FORMAT_PRESETS["a4-poster"]);
+  if (options.formatIds?.length) {
+    for (const id of options.formatIds) {
+      add(FORMAT_PRESETS[id] ?? resolveFormat(id));
+    }
+  }
 
-  const tokens = raw.toLowerCase().split(/[^a-z0-9-]+/);
-  for (const token of tokens) {
-    add(resolveFormat(token));
+  if (formats.length === 0) {
+    if (/instagram\s+(post|posts)/i.test(raw) || /ig\s+post/i.test(raw)) add(FORMAT_PRESETS["instagram-post"]);
+    if (/stor(y|ies)/i.test(raw)) add(FORMAT_PRESETS["instagram-story"]);
+    if (/facebook\s+cover|fb\s+cover/i.test(raw)) add(FORMAT_PRESETS["facebook-cover"]);
+    if (/facebook(?!\s+cover)/i.test(raw)) add(FORMAT_PRESETS["facebook-post"]);
+    if (/\ba4\b|poster|print/i.test(raw)) add(FORMAT_PRESETS["a4-poster"]);
+    if (/pdf/i.test(raw) && !formats.some((f) => f.id === "a4-poster")) add(FORMAT_PRESETS["a4-poster"]);
+
+    const tokens = raw.toLowerCase().split(/[^a-z0-9-]+/);
+    for (const token of tokens) {
+      add(resolveFormat(token));
+    }
   }
 
   if (formats.length === 0) add(FORMAT_PRESETS["instagram-post"]);
@@ -86,9 +97,8 @@ export function parseBrief(raw: string): ParsedBrief {
   );
 
   const questions: string[] = [];
-  if (!industry) questions.push("Which industry or category should this campaign speak to?");
-  if (!/brand|logo|guidelines/i.test(raw)) {
-    questions.push("Confirm we should use the currently selected brand profile and logo.");
+  if (!industry && !options.businessName) {
+    questions.push("Which industry or category should this campaign speak to?");
   }
 
   const title = deriveTitle(raw);

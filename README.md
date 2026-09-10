@@ -6,23 +6,24 @@
 
 # Creative Department
 
-An autonomous **AI creative department**: natural-language briefs become planned, brand-aware, QC’d, **editable** deliverables. It is not a chatbot that describes design work.
+A **local-business design studio** (subscription product): anyone can describe what they need, pick **color**, **accent color**, **font style**, **design style**, **Illustrator or Photoshop**, and **upload a picture** or take a **photo idea from the prompt**. It is not a one-brand org/brand/project console.
+
+Natural-language briefs become planned, QC’d, **editable** deliverables. Org/brand/project exist only as internal storage.
 
 **This Cloud Agent is not your Mac.** It cannot move your mouse or control the Illustrator copy on your laptop. See [Where this runs](docs/WHERE_THIS_RUNS.md).
 
-Adobe Illustrator is the first application connector. On Linux (including Cursor Cloud) it produces SVG, ExtendScript (`.jsx`), PDF, and PNG, and it **reports** that Illustrator itself is unavailable. Run the same project **on your Mac with Illustrator open** to rebuild native documents.
+On Linux (including Cursor Cloud) it produces SVG, ExtendScript (`.jsx`), Photoshop JSX, PDF, and PNG, and it **reports** that Adobe apps are unavailable. Run the same project **on your Mac with Illustrator or Photoshop open** to rebuild native documents. **Each format is its own Illustrator artboard** (coordinates are offset — artwork is not stacked on artboard 1). Photoshop gets **one document per format**.
 
 ## Quick start (on the computer that should do the work)
 
 ```bash
 pnpm install
 pnpm test
-pnpm seed
-pnpm cli run --auto-approve --brief "Create a premium Instagram campaign for our real-estate project announcing that reservations are open. I need 1 Instagram post, 1 story, a Facebook cover, and an A4 poster."
+pnpm cli run --auto-approve --business "Harbor Bakery" --color "#1F3D34" --accent "#D4A017" --font friendly --style warm --app illustrator --formats instagram-post,instagram-story --photo-from-prompt --brief "Saturday tasting is on. Instagram post and story. Book a table."
 pnpm serve
 ```
 
-Operator console: `http://127.0.0.1:8787` **on that same computer**.
+Studio UI: `http://127.0.0.1:8787` **on that same computer**. There is no Organization / Brand / Project picker.
 
 On a Mac with Illustrator running, a successful job will activate Illustrator and run `illustrator-job.jsx` (no mouse). If Illustrator was closed:
 

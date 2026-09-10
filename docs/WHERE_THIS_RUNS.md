@@ -29,7 +29,6 @@ git clone https://github.com/NebyuDaniel6/NebyuDaniel6.git
 cd NebyuDaniel6
 git checkout cursor/ai-creative-department-c765   # or main once merged
 pnpm install
-pnpm seed
 ```
 
 1. Open **Adobe Illustrator** (it must be running).
@@ -40,11 +39,14 @@ pnpm serve
 ```
 
 3. In Safari/Chrome on the Mac: `http://127.0.0.1:8787`
-4. Run a brief. After export, the agent calls:
+4. Fill in business name, colors, font, design style, Illustrator or Photoshop, formats, and optionally a photo. There is no Organization / Brand / Project dropdown — this is a studio anyone can use.
+5. Run the job. After export, if the target is Illustrator, the agent calls:
 
 `tell application "Adobe Illustrator" to do javascript file POSIX file "…/illustrator-job.jsx"`
 
-You should see Illustrator come forward and build artboards. **The mouse should not roam.** That is intentional.
+You should see **separate artboards** (Instagram post, story, cover, …), each with its own artwork. **Nothing should pile onto artboard 1.** The mouse should not roam. That is intentional.
+
+If the target is Photoshop, open `photoshop-job.jsx` (File → Scripts). Photoshop creates **one document per format**.
 
 If Illustrator was closed, the job still writes `data/jobs/<task>/illustrator-job.jsx`. Then:
 

@@ -27,14 +27,18 @@ import { jobDir } from "../lib/paths.ts";
 import type { DesignDocument } from "../document/types.ts";
 import type { QcReport } from "../qc/types.ts";
 import { detectIllustrator } from "../connectors/illustrator/detect.ts";
+import { normalizeStudio } from "../studio/profile.ts";
+import { ensureStudioWorkspace, ingestStudioPhoto } from "../studio/workspace.ts";
+import type { StudioInput, TargetApp } from "../studio/types.ts";
 
 export interface RunRequest {
-  orgId: string;
-  brandId: string;
-  projectId: string;
   brief: string;
   policy?: ApprovalPolicy;
   autoApprove?: boolean;
+  studio?: StudioInput;
+  orgId?: string;
+  brandId?: string;
+  projectId?: string;
 }
 
 export interface RunSnapshot {
@@ -48,6 +52,12 @@ export interface RunSnapshot {
     ok: boolean;
     message: string;
   };
+  photoshopRuntime?: {
+    attempted: boolean;
+    ok: boolean;
+    message: string;
+  };
+  targetApp?: TargetApp;
   connectorHealth?: Record<string, unknown>;
   waitingFor?: "direction" | "final";
   error?: { code: string; message: string };
@@ -55,15 +65,38 @@ export interface RunSnapshot {
 }
 
 export async function startJob(req: RunRequest): Promise<RunSnapshot> {
-  const policy: ApprovalPolicy = req.policy ?? {
-    direction: req.autoApprove ? "auto" : "require",
-    final: req.autoApprove ? "auto" : "require",
+  const useStudio = Boolean(req.studio) || !req.orgId || !req.brandId || !req.projectId;
+  const studio = useStudio ? normalizeStudio(req.studio ?? {}, req.brief) : undefined;
+
+  let orgId = req.orgId;
+  let brandId = req.brandId;
+  let projectId = req.projectId;
+  if (!orgId || !brandId || !projectId) {
+    const workspace = ensureStudioWorkspace(studio ?? normalizeStudio({}, req.brief));
+    orgId = workspace.orgId;
+    brandId = workspace.brandId;
+    projectId = workspace.projectId;
+  }
+
+  if (studio && req.studio?.photoBase64) {
+    const photoPath = ingestStudioPhoto(orgId, brandId, req.studio);
+    if (photoPath) studio.photoPath = photoPath;
+  }
+
+  const policy: ApprovalPolicy = {
+    direction: req.policy?.direction ?? (req.autoApprove ? "auto" : "require"),
+    final: req.policy?.final ?? (req.autoApprove ? "auto" : "require"),
+    studio,
   };
-  const parsed = parseBrief(req.brief);
+
+  const parsed = parseBrief(req.brief, {
+    formatIds: studio?.formats,
+    businessName: studio?.businessName,
+  });
   const task = createTask({
-    orgId: req.orgId,
-    brandId: req.brandId,
-    projectId: req.projectId,
+    orgId,
+    brandId,
+    projectId,
     title: parsed.title,
     brief: req.brief,
     policy,
@@ -85,8 +118,12 @@ export async function continueJob(taskId: string, decision?: "approve" | "reject
     const failed = transition(task.id, "failed", { reason: "brand_missing" });
     return snapshot(failed, spans, toolsUsed, { error: { code: "brand_missing", message: "Brand not found." } });
   }
+  const studio = task.policy.studio;
   const memories = listMemories(brand.id);
-  const parsed = parseBrief(task.brief);
+  const parsed = parseBrief(task.brief, {
+    formatIds: studio?.formats,
+    businessName: studio?.businessName ?? brand.profile.name,
+  });
   const skills = selectSkills(task.brief, loadSkills());
 
   let span = startSpan("analyze_brief");
@@ -164,6 +201,9 @@ export async function continueJob(taskId: string, decision?: "approve" | "reject
       copy: plan.copy,
       formats: parsed.formats,
       logoPath: logo?.path,
+      photoPath: studio?.photoPath,
+      photoIdea: studio?.photoFromPrompt ? studio.photoIdea : undefined,
+      designStyle: studio?.designStyle,
       variationIndex: 0,
     });
     document = layout.document;
@@ -257,9 +297,18 @@ export async function continueJob(taskId: string, decision?: "approve" | "reject
   live = getTask(task.id)!;
   if (live.status === "export") {
     span = startSpan("export");
+    const targetApp: TargetApp = studio?.targetApp ?? "illustrator";
+    const formats: Array<"svg" | "png" | "jpg" | "pdf" | "jsx" | "psjsx" | "json"> = [
+      "svg",
+      "png",
+      "pdf",
+      "json",
+      ...(targetApp === "photoshop" ? (["psjsx"] as const) : (["jsx"] as const)),
+    ];
+    if (parsed.outputs.includes("jpg")) formats.push("jpg");
     const exported = await invokeTool(
       "illustrator.export",
-      { taskId: task.id, formats: [...parsed.outputs, "json"] as Array<"svg" | "png" | "jpg" | "pdf" | "jsx" | "json"> },
+      { taskId: task.id, formats },
       { taskId: task.id, orgId: task.orgId, brandId: brand.id },
     );
     recordTool("illustrator.export");
@@ -274,14 +323,22 @@ export async function continueJob(taskId: string, decision?: "approve" | "reject
     const files = ((exported.output as { files?: string[] })?.files ?? []) as string[];
     persistDeliverables(task.id, files);
 
-    const jsx = files.find((f) => f.endsWith(".jsx"));
+    const jsx = files.find((f) => f.endsWith("illustrator-job.jsx"));
+    const psjsx = files.find((f) => f.endsWith("photoshop-job.jsx"));
     const detection = detectIllustrator();
     const illustratorRuntime = {
       attempted: false,
       ok: false,
       message: detection.message,
     };
-    if (jsx && detection.installed) {
+    const photoshopRuntime = {
+      attempted: false,
+      ok: false,
+      message:
+        "Adobe Photoshop is not driven from this Linux host. Open photoshop-job.jsx on a Mac with Photoshop (File → Scripts → Other Script). Photoshop gets one document per format — not stacked artboards.",
+    };
+
+    if (targetApp === "illustrator" && jsx && detection.installed) {
       illustratorRuntime.attempted = true;
       const opened = await invokeTool(
         "illustrator.run_extendscript",
@@ -293,8 +350,11 @@ export async function continueJob(taskId: string, decision?: "approve" | "reject
       illustratorRuntime.message = opened.ok
         ? "Opened the job inside Adobe Illustrator on this computer via ExtendScript (no mouse)."
         : JSON.stringify(opened.output);
+    } else if (targetApp === "illustrator") {
+      illustratorRuntime.message = `${detection.message} Editable SVG and illustrator-job.jsx were still written. Each format is its own artboard with offset coordinates — artwork is not stacked on artboard 1. Run this project on the Mac that has Illustrator, with Illustrator open, to rebuild native .ai artboards.`;
     } else {
-      illustratorRuntime.message = `${detection.message} Editable SVG and illustrator-job.jsx were still written. Run this project on the Mac that has Illustrator, with Illustrator open, to rebuild native .ai artboards.`;
+      illustratorRuntime.message = "Target app is Photoshop; Illustrator JSX was not written for this job.";
+      if (psjsx) photoshopRuntime.message = `${photoshopRuntime.message} File: ${psjsx}`;
     }
 
     addMemory({
@@ -305,13 +365,21 @@ export async function continueJob(taskId: string, decision?: "approve" | "reject
       sourceTaskId: task.id,
     });
     recordTool("brand.remember");
-    span = endSpan(span, true, { files, illustratorRuntime });
+    span = endSpan(span, true, { files, illustratorRuntime, photoshopRuntime, targetApp });
     spans.push(span);
     const approved = transition(task.id, "approved");
-    const result = { files, plan, qc, illustratorRuntime };
+    const result = { files, plan, qc, illustratorRuntime, photoshopRuntime, targetApp };
     saveResult(task.id, result);
     audit({ orgId: task.orgId, actor: "orchestrator", action: "task.approved", payload: { taskId: task.id } });
-    return snapshot(approved, spans, toolsUsed, { brief: parsed, plan, qc, files, illustratorRuntime });
+    return snapshot(approved, spans, toolsUsed, {
+      brief: parsed,
+      plan,
+      qc,
+      files,
+      illustratorRuntime,
+      photoshopRuntime,
+      targetApp,
+    });
   }
 
   return snapshot(getTask(task.id)!, spans, toolsUsed, { brief: parsed, plan, qc });

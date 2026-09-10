@@ -17,6 +17,11 @@ describe("planning", () => {
     expect(brief.outputs).toContain("svg");
   });
 
+  it("honors explicit format ids from the studio form", () => {
+    const brief = parseBrief("Make something nice for the shop", { formatIds: ["facebook-cover", "web-hero"] });
+    expect(brief.formats.map((f) => f.id)).toEqual(["facebook-cover", "web-hero"]);
+  });
+
   it("builds a heuristic plan with copy and steps", () => {
     const brief = parseBrief("Launch Instagram posts for the restaurant. Book now.");
     const skills = selectSkills(brief.raw, loadSkills());

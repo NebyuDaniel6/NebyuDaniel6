@@ -92,7 +92,7 @@ export function illustratorConnector(): ApplicationConnector {
           }
           case "export": {
             const taskId = String(op.input.taskId ?? "");
-            const formats = (op.input.formats as Array<"svg" | "png" | "jpg" | "pdf" | "jsx" | "json">) ?? [
+            const formats = (op.input.formats as Array<"svg" | "png" | "jpg" | "pdf" | "jsx" | "psjsx" | "json">) ?? [
               "svg",
               "png",
               "pdf",

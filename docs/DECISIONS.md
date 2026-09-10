@@ -76,6 +76,20 @@ Architecture Decision Records for this repository. Each entry records what was c
 
 **Decision.** “Aether Residences” exists only as `pnpm seed` data so the pipeline can be exercised. No customer-specific rules are compiled into the agent.
 
-## ADR-013 — Operator UI is an operator console, not a landing page
+## ADR-013 — Studio intake is the product; org/brand/project are internal
 
-**Decision.** The HTTP UI is a working production console (brief in, trace out, files down, approve/reject). It is not a marketing site pretending the engine exists.
+**Decision.** The HTTP UI is a local-business studio: brief, color, accent, font style, design style, Illustrator vs Photoshop, upload a photo or a photo idea from the prompt. Organization / brand / project are persistence internals, not the product surface.
+
+**Why.** The product is a subscription tool anyone can use, not an internal console for one seeded brand.
+
+## ADR-014 — One Illustrator artboard per format, document-space coordinates
+
+**Decision.** Compiled `illustrator-job.jsx` places each format on its own artboard and adds that artboard’s origin X to every object. Illustrator layers are document-global; “active artboard” does not move new objects.
+
+**Why.** Creating extra artboards while drawing at local (0,0) stacks everything onto artboard 1.
+
+## ADR-015 — Photoshop is one document per format
+
+**Decision.** Photoshop ExtendScript does not get a fake multi-size artboard layout. `photoshop-job.jsx` opens one document per format.
+
+**Rejected.** Pretending Photoshop artboards work like Illustrator’s from ExtendScript.

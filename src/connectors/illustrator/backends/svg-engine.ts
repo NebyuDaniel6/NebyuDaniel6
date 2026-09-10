@@ -6,6 +6,7 @@ import { writeDocumentSvgs } from "../../../document/export/svg.ts";
 import { exportArtboardRaster } from "../../../document/export/png.ts";
 import { exportDocumentPdf } from "../../../document/export/pdf.ts";
 import { writeExtendScript } from "../../../document/export/jsx.ts";
+import { writePhotoshopScript } from "../../../document/export/photoshop-jsx.ts";
 import { jobDir } from "../../../lib/paths.ts";
 import { err, ok, type Result } from "../../../lib/result.ts";
 
@@ -41,7 +42,7 @@ export function reopenFromDisk(taskId: string): Result<SvgEngineSession> {
 
 export async function exportSession(
   taskId: string,
-  formats: Array<"svg" | "png" | "jpg" | "pdf" | "jsx" | "json">,
+  formats: Array<"svg" | "png" | "jpg" | "pdf" | "jsx" | "psjsx" | "json">,
 ): Promise<Result<{ files: string[]; inspect: ReturnType<typeof inspectDocument> }>> {
   const session = sessions.get(taskId) ?? reopenFromDisk(taskId);
   if (!session || ("ok" in session && session.ok === false)) {
@@ -64,6 +65,9 @@ export async function exportSession(
   }
   if (wants.has("jsx")) {
     files.push(writeExtendScript(live.document, path.join(dir, "illustrator-job.jsx")));
+  }
+  if (wants.has("psjsx")) {
+    files.push(writePhotoshopScript(live.document, path.join(dir, "photoshop-job.jsx")));
   }
   if (wants.has("png") || wants.has("jpg")) {
     const rasterDir = path.join(dir, "raster");

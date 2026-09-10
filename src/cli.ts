@@ -24,7 +24,7 @@ program
 
 program
   .command("seed")
-  .description("Create the sample organization, brand, and project.")
+  .description("Optional: create the old sample brand (not required to use the studio).")
   .action(() => {
     const seeded = seedSampleWorld();
     console.log(JSON.stringify(seeded, null, 2));
@@ -32,21 +32,52 @@ program
 
 program
   .command("run")
-  .description("Run a brief through the agent.")
+  .description("Run a brief through the studio (colors, type, style, Illustrator or Photoshop).")
   .requiredOption("--brief <text>", "Natural-language brief")
-  .option("--org <id>", "Organization id")
-  .option("--brand <id>", "Brand id")
-  .option("--project <id>", "Project id")
+  .option("--business <name>", "Business name")
+  .option("--color <hex>", "Primary color")
+  .option("--accent <hex>", "Accent color")
+  .option("--font <style>", "modern-sans | elegant-serif | bold-display | friendly")
+  .option("--style <design>", "editorial | bold | minimal | warm | luxury")
+  .option("--app <name>", "illustrator | photoshop", "illustrator")
+  .option("--formats <csv>", "Comma-separated format ids")
+  .option("--photo-from-prompt", "Reserve a photo well from the brief (does not fake a photo)", false)
+  .option("--org <id>", "Optional internal organization id")
+  .option("--brand <id>", "Optional internal brand id")
+  .option("--project <id>", "Optional internal project id")
   .option("--auto-approve", "Auto-approve direction and finals", false)
-  .action(async (opts: { brief: string; org?: string; brand?: string; project?: string; autoApprove?: boolean }) => {
+  .action(async (opts: {
+    brief: string;
+    business?: string;
+    color?: string;
+    accent?: string;
+    font?: string;
+    style?: string;
+    app?: string;
+    formats?: string;
+    photoFromPrompt?: boolean;
+    org?: string;
+    brand?: string;
+    project?: string;
+    autoApprove?: boolean;
+  }) => {
     boot();
-    const seeded = opts.org && opts.brand && opts.project ? null : seedSampleWorld();
     const snapshot = await startJob({
-      orgId: opts.org ?? seeded!.orgId,
-      brandId: opts.brand ?? seeded!.brandId,
-      projectId: opts.project ?? seeded!.projectId,
       brief: opts.brief,
       autoApprove: Boolean(opts.autoApprove),
+      orgId: opts.org,
+      brandId: opts.brand,
+      projectId: opts.project,
+      studio: {
+        businessName: opts.business,
+        primaryColor: opts.color,
+        accentColor: opts.accent,
+        fontStyle: opts.font,
+        designStyle: opts.style,
+        targetApp: opts.app,
+        formats: opts.formats ? opts.formats.split(",").map((s) => s.trim()) : undefined,
+        photoFromPrompt: Boolean(opts.photoFromPrompt),
+      },
     });
     let current = snapshot;
     if (current.waitingFor === "direction") {

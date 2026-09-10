@@ -77,6 +77,7 @@ function headlineFrom(brief: ParsedBrief, brand: BrandProfile): string {
 function kickerFrom(brief: ParsedBrief, brand: BrandProfile): string {
   if (brief.industry === "real-estate") return "New residences";
   if (brief.industry === "hospitality") return "Now serving";
+  if (brand.industry === "local-business") return brand.name;
   return brand.industry || "Campaign";
 }
 
