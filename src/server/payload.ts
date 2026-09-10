@@ -1,6 +1,6 @@
 import type { RunSnapshot } from "../agent/orchestrator.ts";
 
-export const STUDIO_VERSION = "0.2.2-studio";
+export const STUDIO_VERSION = "0.2.3-studio";
 
 export function publicSnapshot(snap: RunSnapshot) {
   const studio = snap.task.policy?.studio;

@@ -181,7 +181,12 @@ async function runJob() {
   setBusy(true, "Starting…");
   try {
     const started = await api("/api/jobs", { method: "POST", body: JSON.stringify(body) });
-    if (started.error) throw new Error(errorMessage(started, "Job failed"));
+    if (started.error && started.task?.status === "failed") {
+      throw new Error(errorMessage(started, "Job failed"));
+    }
+    if (!started.task?.id) {
+      throw new Error(errorMessage(started, "Job did not return a task"));
+    }
     state.lastTaskId = started.task.id;
     renderSnapshot(started);
     if (terminal(started)) return;

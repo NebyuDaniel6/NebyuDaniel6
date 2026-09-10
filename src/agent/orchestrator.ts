@@ -408,14 +408,14 @@ async function runJob(taskId: string, decision?: "approve" | "reject", note?: st
       ok: false,
       message:
         jsx
-          ? `${detection.message} Files are ready — open illustrator-job.jsx in Illustrator (File → Scripts → Other Script). Each format is its own artboard. The studio does not wait for Illustrator, so this page will not freeze.`
+          ? `${detection.message} Files are ready - open illustrator-job.jsx in Illustrator (File -> Scripts -> Other Script). Each format is its own artboard. This page does not wait for Illustrator.`
           : detection.message,
     };
     const photoshopRuntime = {
       attempted: false,
       ok: false,
       message: psjsx
-        ? "Open photoshop-job.jsx in Photoshop (File → Scripts). One document per format. This page does not wait for Photoshop."
+        ? "Open photoshop-job.jsx in Photoshop (File -> Scripts). One document per format. This page does not wait for Photoshop."
         : "Adobe Photoshop is not driven from this host.",
     };
     if (targetApp === "photoshop") {

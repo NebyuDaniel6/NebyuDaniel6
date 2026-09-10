@@ -4,8 +4,10 @@ import { hydrateSnapshot, startJob } from "../src/agent/orchestrator.ts";
 import { normalizeStudio, photoIdeaFromPrompt, profileFromStudio } from "../src/studio/profile.ts";
 import { compileExtendScript } from "../src/document/export/jsx.ts";
 import { createApp } from "../src/server/app.ts";
+import { respondJson } from "../src/server/respond.ts";
 import { useIsolatedDb } from "./helpers.ts";
 import fs from "node:fs";
+import type { Context } from "hono";
 
 useIsolatedDb();
 
@@ -97,6 +99,15 @@ describe("local-business studio", () => {
     expect(snap.photoshopRuntime?.message.toLowerCase()).toMatch(/photoshop/);
   });
 
+  it("JSON responses set content-length in bytes so unicode is not truncated", async () => {
+    const res = respondJson({ req: { path: "/test" } } as Context, {
+      note: "Files are ready — open the script. Café.",
+    });
+    const buf = Buffer.from(await res.arrayBuffer());
+    expect(Number(res.headers.get("content-length"))).toBe(buf.byteLength);
+    expect(JSON.parse(buf.toString("utf8")).note).toContain("Café");
+  });
+
   it("health reports the studio version", async () => {
     boot();
     const app = createApp();
@@ -104,7 +115,7 @@ describe("local-business studio", () => {
     const json = (await res.json()) as { ok: boolean; version: string };
     expect(res.status).toBe(200);
     expect(json.ok).toBe(true);
-    expect(json.version).toBe("0.2.2-studio");
+    expect(json.version).toBe("0.2.3-studio");
   });
 
   it("POST /api/jobs returns a finished campaign or a pollable task", async () => {
