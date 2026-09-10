@@ -2,6 +2,8 @@
 
 These are **in the git repo** so you can download them. Jobs the Cloud Agent ran live only on the remote VM under `data/` (gitignored), so they never appear on your Mac or on GitHub’s default branch.
 
+The product itself is a **studio for any local business** (colors, type, style, Illustrator or Photoshop, photo). This folder is just a downloadable Illustrator/Photoshop script that already has **one artboard per format**, with artwork offset onto that artboard (not stacked on artboard 1).
+
 ## Open in Adobe Illustrator (on your Mac)
 
 1. Switch GitHub to branch **`cursor/ai-creative-department-c765`** (not `main`). `main` is still only the profile README.
@@ -13,6 +15,10 @@ Direct download: https://raw.githubusercontent.com/NebyuDaniel6/NebyuDaniel6/cur
 
 3. Open **Adobe Illustrator**.
 4. File → Scripts → Other Script… → choose `illustrator-job.jsx`.
+
+You should get **four artboards**: Instagram post, Instagram story, Facebook cover, A4 poster. Each board has its own artwork.
+
+Photoshop: **[photoshop-job.jsx](https://github.com/NebyuDaniel6/NebyuDaniel6/blob/cursor/ai-creative-department-c765/examples/aether-reservations/photoshop-job.jsx)** — one Photoshop document per format.
 
 Or clone the branch and open the file from disk:
 
