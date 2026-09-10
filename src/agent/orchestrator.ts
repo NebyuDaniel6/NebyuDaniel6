@@ -165,6 +165,21 @@ export function hydrateSnapshot(taskId: string): RunSnapshot | null {
 }
 
 export async function continueJob(taskId: string, decision?: "approve" | "reject", note?: string): Promise<RunSnapshot> {
+  try {
+    return await runJob(taskId, decision, note);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    const task = getTask(taskId);
+    if (task && canTransition(task.status, "failed")) {
+      return snapshot(transition(task.id, "failed", { reason: "uncaught" }), [], [], {
+        error: { code: "uncaught", message },
+      });
+    }
+    throw error;
+  }
+}
+
+async function runJob(taskId: string, decision?: "approve" | "reject", note?: string): Promise<RunSnapshot> {
   const task = getTask(taskId);
   if (!task) throw new Error(`Task ${taskId} not found`);
   const spans: TraceSpan[] = [];
@@ -358,14 +373,16 @@ export async function continueJob(taskId: string, decision?: "approve" | "reject
   if (live.status === "export") {
     span = startSpan("export");
     const targetApp: TargetApp = studio?.targetApp ?? "illustrator";
+    // SVG + JSX are the product. PNG/PDF use a native rasterizer that can crash Node on some Macs.
     const formats: Array<"svg" | "png" | "jpg" | "pdf" | "jsx" | "psjsx" | "json"> = [
       "svg",
-      "png",
-      "pdf",
       "json",
       ...(targetApp === "photoshop" ? (["psjsx"] as const) : (["jsx"] as const)),
     ];
-    if (parsed.outputs.includes("jpg")) formats.push("jpg");
+    if (process.env.CREATIVE_AGENT_RASTER === "1") {
+      formats.push("png", "pdf");
+      if (parsed.outputs.includes("jpg")) formats.push("jpg");
+    }
     const exported = await invokeTool(
       "illustrator.export",
       { taskId: task.id, formats },

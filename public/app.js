@@ -1,15 +1,31 @@
-const state = { lastTaskId: null, pollTimer: null };
+const state = { lastTaskId: null, pollTimer: null, version: "" };
 
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
+}
+
+function errorMessage(data, fallback) {
+  const err = data?.error ?? data?.message ?? fallback;
+  if (err && typeof err === "object") return err.message || JSON.stringify(err);
+  return String(err || fallback || "Unknown error");
 }
 
 async function api(path, opts = {}) {
   const headers = { ...(opts.headers || {}) };
   if (opts.body && !headers["content-type"]) headers["content-type"] = "application/json";
   const res = await fetch(path, { ...opts, headers });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || data.message || res.statusText || `HTTP ${res.status}`);
+  const text = await res.text();
+  let data = {};
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    data = { error: text.slice(0, 400) || res.statusText || `HTTP ${res.status}` };
+  }
+  if (data.version) state.version = data.version;
+  if (!res.ok) {
+    const msg = errorMessage(data, text.slice(0, 400) || res.statusText || `HTTP ${res.status}`);
+    throw new Error(data.version ? `${msg} (${data.version})` : msg);
+  }
   return data;
 }
 
@@ -165,7 +181,7 @@ async function runJob() {
   setBusy(true, "Starting…");
   try {
     const started = await api("/api/jobs", { method: "POST", body: JSON.stringify(body) });
-    if (started.error) throw new Error(started.error.message || started.error);
+    if (started.error) throw new Error(errorMessage(started, "Job failed"));
     state.lastTaskId = started.task.id;
     renderSnapshot(started);
     if (terminal(started)) return;
@@ -203,10 +219,13 @@ document.getElementById("reject").addEventListener("click", () => decide("reject
 
 (async function init() {
   try {
-    const health = await api("/api/connectors");
-    const illo = health.illustrator?.message || "Illustrator unknown";
-    document.getElementById("connector-status").textContent = `${health.illustrator?.backend || "—"} · ${illo}`;
+    const health = await api("/api/health");
+    const connectors = await api("/api/connectors").catch(() => ({}));
+    const illo = connectors.illustrator?.message || "Illustrator unknown";
+    const backend = connectors.illustrator?.backend || "—";
+    document.getElementById("connector-status").textContent =
+      `${health.version || "unknown"} · ${backend} · ${illo}`;
   } catch (err) {
-    document.getElementById("connector-status").textContent = String(err);
+    document.getElementById("connector-status").textContent = String(err.message || err);
   }
 })();

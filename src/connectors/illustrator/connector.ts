@@ -94,8 +94,6 @@ export function illustratorConnector(): ApplicationConnector {
             const taskId = String(op.input.taskId ?? "");
             const formats = (op.input.formats as Array<"svg" | "png" | "jpg" | "pdf" | "jsx" | "psjsx" | "json">) ?? [
               "svg",
-              "png",
-              "pdf",
               "jsx",
               "json",
             ];

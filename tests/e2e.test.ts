@@ -27,8 +27,8 @@ describe("end-to-end campaign", () => {
     expect(snap.files?.some((f) => f.endsWith(".svg"))).toBe(true);
     expect(snap.files?.some((f) => f.endsWith(".jsx"))).toBe(true);
     expect(snap.files?.some((f) => f.endsWith(".json"))).toBe(true);
-    expect(snap.files?.some((f) => f.endsWith(".png"))).toBe(true);
-    expect(snap.files?.some((f) => f.endsWith(".pdf"))).toBe(true);
+    expect(snap.files?.some((f) => f.endsWith(".png"))).toBe(false);
+    expect(snap.files?.some((f) => f.endsWith(".pdf"))).toBe(false);
     for (const file of snap.files ?? []) {
       expect(fs.existsSync(file)).toBe(true);
       expect(fs.statSync(file).size).toBeGreaterThan(32);

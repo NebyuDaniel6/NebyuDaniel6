@@ -97,6 +97,16 @@ describe("local-business studio", () => {
     expect(snap.photoshopRuntime?.message.toLowerCase()).toMatch(/photoshop/);
   });
 
+  it("health reports the studio version", async () => {
+    boot();
+    const app = createApp();
+    const res = await app.request("/api/health");
+    const json = (await res.json()) as { ok: boolean; version: string };
+    expect(res.status).toBe(200);
+    expect(json.ok).toBe(true);
+    expect(json.version).toBe("0.2.2-studio");
+  });
+
   it("POST /api/jobs returns a finished campaign or a pollable task", async () => {
     boot();
     const app = createApp();
@@ -116,11 +126,13 @@ describe("local-business studio", () => {
     const json = (await res.json()) as {
       running?: boolean;
       error?: string;
+      version?: string;
       task: { id: string; status: string };
       files?: string[];
     };
     expect(res.status).toBe(200);
     expect(json.error).toBeUndefined();
+    expect(json.version).toMatch(/studio/);
     expect(json.task?.id).toBeTruthy();
     if (json.running && json.task.status === "planning") {
       let snap = hydrateSnapshot(json.task.id);

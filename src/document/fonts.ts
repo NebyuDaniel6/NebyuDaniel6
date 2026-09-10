@@ -3,22 +3,30 @@ import path from "node:path";
 import opentype from "opentype.js";
 import type { Font } from "opentype.js";
 
+const MAC_FALLBACKS = [
+  "/System/Library/Fonts/Supplemental/Arial.ttf",
+  "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+  "/Library/Fonts/Arial.ttf",
+  "/System/Library/Fonts/Supplemental/Times New Roman.ttf",
+  "/System/Library/Fonts/Supplemental/Georgia.ttf",
+];
+
 const FONT_CANDIDATES: Record<string, string[]> = {
   Inter: [
     "/usr/share/fonts/truetype/macos/Inter-Regular.ttf",
     "/usr/share/fonts/truetype/macos/Inter-Bold.ttf",
-    "/System/Library/Fonts/Supplemental/Arial.ttf",
-    "/Library/Fonts/Arial.ttf",
+    ...MAC_FALLBACKS,
   ],
-  "Inter Bold": ["/usr/share/fonts/truetype/macos/Inter-Bold.ttf"],
-  "Public Sans": ["/usr/share/fonts/truetype/macos/PublicSans-Regular.ttf"],
-  "Source Sans 3": ["/usr/share/fonts/truetype/macos/SourceSans3-Regular.ttf"],
-  "JetBrains Mono": ["/usr/share/fonts/truetype/macos/JetBrainsMono-Regular.ttf"],
+  "Inter Bold": ["/usr/share/fonts/truetype/macos/Inter-Bold.ttf", ...MAC_FALLBACKS],
+  "Public Sans": ["/usr/share/fonts/truetype/macos/PublicSans-Regular.ttf", ...MAC_FALLBACKS],
+  "Source Sans 3": ["/usr/share/fonts/truetype/macos/SourceSans3-Regular.ttf", ...MAC_FALLBACKS],
+  "JetBrains Mono": ["/usr/share/fonts/truetype/macos/JetBrainsMono-Regular.ttf", ...MAC_FALLBACKS],
   "Noto Serif": [
     "/usr/share/fonts/truetype/noto/NotoSerif-Regular.ttf",
     "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf",
+    ...MAC_FALLBACKS,
   ],
-  "DejaVu Serif": ["/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf"],
+  "DejaVu Serif": ["/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf", ...MAC_FALLBACKS],
 };
 
 const WEIGHT_FILES: Record<string, Record<number, string>> = {
@@ -57,21 +65,40 @@ export function resolveFont(family: string, weight = 400): ResolvedFont {
   if (exact && fs.existsSync(exact)) {
     return { family, file: exact, substituted: false, requested: family };
   }
-  const fallback = FONT_CANDIDATES.Inter?.[0];
-  if (fallback && fs.existsSync(fallback)) {
-    return { family: "Inter", file: fallback, substituted: family !== "Inter", requested: family };
+  for (const candidate of FONT_CANDIDATES[family] ?? FONT_CANDIDATES.Inter ?? []) {
+    if (fs.existsSync(candidate)) {
+      return { family: family in FONT_CANDIDATES ? family : "Inter", file: candidate, substituted: true, requested: family };
+    }
   }
-  const lastResort = [
-    "/System/Library/Fonts/Supplemental/Arial.ttf",
-    "/System/Library/Fonts/Supplemental/Times New Roman.ttf",
-    "/Library/Fonts/Arial.ttf",
-    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-    "/usr/share/fonts/truetype/macos/Inter-Regular.ttf",
-  ].find((p) => fs.existsSync(p));
-  if (lastResort) {
-    return { family: "Arial", file: lastResort, substituted: true, requested: family };
+  const discovered = discoverFontFile();
+  if (discovered) {
+    return { family: "System", file: discovered, substituted: true, requested: family };
   }
   throw new Error(`No usable font found for ${family}`);
+}
+
+function discoverFontFile(): string | undefined {
+  const dirs = [
+    "/usr/share/fonts/truetype/macos",
+    "/usr/share/fonts/truetype/dejavu",
+    "/usr/share/fonts/truetype/noto",
+    "/System/Library/Fonts/Supplemental",
+    "/Library/Fonts",
+    path.join(process.env.HOME ?? "", "Library/Fonts"),
+  ];
+  for (const dir of dirs) {
+    try {
+      if (!fs.existsSync(dir)) continue;
+      for (const name of fs.readdirSync(dir)) {
+        if (/\.(ttf|otf)$/i.test(name) && !/emoji|color/i.test(name)) {
+          return path.join(dir, name);
+        }
+      }
+    } catch {
+      /* skip unreadable font dirs */
+    }
+  }
+  return undefined;
 }
 
 export function loadFont(family: string, weight = 400): { font: Font; resolved: ResolvedFont } {

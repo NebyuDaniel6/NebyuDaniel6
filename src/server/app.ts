@@ -6,10 +6,10 @@ import fs from "node:fs";
 import { REPO_ROOT } from "../lib/paths.ts";
 import { probeEnvironment } from "../env/probe.ts";
 import { seedSampleWorld } from "../seed.ts";
-import { continueJob, startJob, hydrateSnapshot, listDeliverables } from "../agent/orchestrator.ts";
+import { continueJob, startJob, hydrateSnapshot } from "../agent/orchestrator.ts";
 import { listOrgs, listProjects } from "../tenant/service.ts";
 import { listBrands } from "../brand/service.ts";
-import { listTasks, listEvents } from "../tasks/engine.ts";
+import { listTasks } from "../tasks/engine.ts";
 import { listTools } from "../tools/registry.ts";
 import { loadSkills } from "../skills/loader.ts";
 import { getConnector } from "../connectors/types.ts";
@@ -18,6 +18,9 @@ import { ingestAsset } from "../assets/service.ts";
 import { log } from "../lib/logger.ts";
 import { boot } from "../bootstrap.ts";
 import type { StudioInput } from "../studio/types.ts";
+import { readLastError, recordLastError } from "../lib/last-error.ts";
+import { publicSnapshot, STUDIO_VERSION } from "./payload.ts";
+import { respondError, respondJson } from "./respond.ts";
 
 export function createApp(): Hono {
   boot();
@@ -25,11 +28,19 @@ export function createApp(): Hono {
 
   app.onError((err, c) => {
     const message = err instanceof Error ? err.message : String(err);
+    recordLastError(message);
     log.error("http_error", { message });
-    return c.json({ error: message }, 500);
+    return c.json({ error: message, version: STUDIO_VERSION }, 500);
   });
 
-  app.get("/api/health", (c) => c.json({ ok: true, service: "creative-agent" }));
+  app.get("/api/health", (c) =>
+    c.json({
+      ok: true,
+      service: "creative-agent",
+      version: STUDIO_VERSION,
+      lastError: readLastError(),
+    }),
+  );
   app.get("/api/doctor", (c) => c.json(probeEnvironment()));
   app.get("/api/tools", (c) => c.json(listTools()));
   app.get("/api/skills", (c) => c.json(loadSkills().map((s) => ({ id: s.id, version: s.version, name: s.name, summary: s.summary }))));
@@ -59,27 +70,14 @@ export function createApp(): Hono {
   app.get("/api/orgs/:orgId/assets", (c) => {
     return c.json(searchAssets({ orgId: c.req.param("orgId"), query: c.req.query("q") ?? undefined }));
   });
+  app.get("/api/debug/last-error", (c) => respondJson(c, { lastError: readLastError() }));
   app.get("/api/tasks/:taskId", (c) => {
     try {
       const snap = hydrateSnapshot(c.req.param("taskId"));
-      if (!snap) return c.json({ error: "not_found" }, 404);
-      return c.json({
-        task: snap.task,
-        status: snap.task.status,
-        waitingFor: snap.waitingFor,
-        error: snap.error,
-        qc: snap.qc,
-        plan: snap.plan,
-        files: snap.files,
-        illustratorRuntime: snap.illustratorRuntime,
-        photoshopRuntime: snap.photoshopRuntime,
-        targetApp: snap.targetApp,
-        trace: snap.trace,
-        events: listEvents(snap.task.id),
-        deliverables: listDeliverables(snap.task.id),
-      });
+      if (!snap) return respondJson(c, { error: "not_found" }, 404);
+      return respondJson(c, publicSnapshot(snap));
     } catch (error) {
-      return c.json({ error: error instanceof Error ? error.message : String(error) }, 500);
+      return respondError(c, "GET /api/tasks/:id", error);
     }
   });
   app.post("/api/jobs", async (c) => {
@@ -129,18 +127,18 @@ export function createApp(): Hono {
         brandId: body.brandId,
         projectId: body.projectId,
       });
-      return c.json(snapshot);
+      return respondJson(c, publicSnapshot(snapshot));
     } catch (error) {
-      return c.json({ error: error instanceof Error ? error.message : String(error) }, 500);
+      return respondError(c, "POST /api/jobs", error);
     }
   });
   app.post("/api/tasks/:taskId/decision", async (c) => {
     try {
       const body = await c.req.json<{ decision: "approve" | "reject"; note?: string }>();
       const snapshot = await continueJob(c.req.param("taskId"), body.decision, body.note);
-      return c.json(snapshot);
+      return respondJson(c, publicSnapshot(snapshot));
     } catch (error) {
-      return c.json({ error: error instanceof Error ? error.message : String(error) }, 500);
+      return respondError(c, "POST /api/tasks/:id/decision", error);
     }
   });
   app.post("/api/assets", async (c) => {
@@ -197,7 +195,15 @@ export function createApp(): Hono {
 
 export async function serve(port: number): Promise<void> {
   const app = createApp();
-  log.info("listening", { port });
+  process.on("uncaughtException", (err) => {
+    recordLastError(`uncaughtException: ${err instanceof Error ? err.message : String(err)}`);
+    log.error("uncaughtException", { message: err instanceof Error ? err.message : String(err) });
+  });
+  process.on("unhandledRejection", (err) => {
+    recordLastError(`unhandledRejection: ${err instanceof Error ? err.message : String(err)}`);
+    log.error("unhandledRejection", { message: err instanceof Error ? err.message : String(err) });
+  });
+  log.info("listening", { port, version: STUDIO_VERSION });
   nodeServe({ fetch: app.fetch, port, hostname: "0.0.0.0" });
-  console.log(`Creative Studio → http://127.0.0.1:${port}`);
+  console.log(`Creative Studio ${STUDIO_VERSION} → http://127.0.0.1:${port}`);
 }
