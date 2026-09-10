@@ -1,0 +1,1060 @@
+{
+  "id": "doc_af5a4640-8698-4b98-a6fc-0ef272f24cf7",
+  "name": "Reservations are open.",
+  "units": "px",
+  "colorMode": "RGB",
+  "artboards": [
+    {
+      "id": "art_127ea47e-4611-49e2-89e9-e4b78729db8c",
+      "name": "Instagram post 1",
+      "width": 1080,
+      "height": 1080,
+      "x": 0,
+      "y": 0,
+      "background": {
+        "r": 27,
+        "g": 58,
+        "b": 47,
+        "a": 1
+      },
+      "layers": [
+        {
+          "id": "layer_c88b4968-3b9a-4a27-806c-75ab8df5fb7f",
+          "name": "Background",
+          "visible": true,
+          "locked": false,
+          "children": [
+            {
+              "id": "rect_b36fb890-8a4b-4265-9038-945d586ab11d",
+              "type": "rect",
+              "name": "Field",
+              "x": 0,
+              "y": 0,
+              "visible": true,
+              "width": 1080,
+              "height": 1080,
+              "fill": {
+                "r": 27,
+                "g": 58,
+                "b": 47,
+                "a": 1
+              },
+              "stroke": null,
+              "strokeWidth": 0,
+              "radius": 0
+            }
+          ]
+        },
+        {
+          "id": "layer_64913de8-519c-4a52-9c8d-46c0d96bb226",
+          "name": "Brand",
+          "visible": true,
+          "locked": false,
+          "children": [
+            {
+              "id": "rect_d71c8cf4-c601-4b71-bf30-492bb5868718",
+              "type": "rect",
+              "name": "Brand rule",
+              "x": 97,
+              "y": 97,
+              "visible": true,
+              "width": 75,
+              "height": 15,
+              "fill": {
+                "r": 196,
+                "g": 163,
+                "b": 90,
+                "a": 1
+              },
+              "stroke": null,
+              "strokeWidth": 0,
+              "radius": 0
+            },
+            {
+              "id": "text_0d86771e-3ac8-446c-835f-8963e0d19fe7",
+              "type": "text",
+              "visible": true,
+              "fontStyle": "normal",
+              "letterSpacing": 0,
+              "name": "Wordmark",
+              "role": "label",
+              "text": "Aether Residences",
+              "x": 97,
+              "y": 130,
+              "width": 540,
+              "height": 39,
+              "fontFamily": "Inter",
+              "fontWeight": 600,
+              "fontSize": 25.392000000000003,
+              "lineHeight": 28.439040000000006,
+              "fill": {
+                "r": 255,
+                "g": 255,
+                "b": 255,
+                "a": 1
+              },
+              "align": "left"
+            }
+          ]
+        },
+        {
+          "id": "layer_1ffe65ba-171c-498e-8565-bd3fe5a2b0c5",
+          "name": "Typography",
+          "visible": true,
+          "locked": false,
+          "children": [
+            {
+              "id": "text_93e7136f-7ca0-4d82-bc02-8b1c3ab66d40",
+              "type": "text",
+              "visible": true,
+              "fontStyle": "normal",
+              "letterSpacing": 3,
+              "name": "Kicker",
+              "role": "kicker",
+              "text": "NEW RESIDENCES",
+              "x": 97,
+              "y": 313,
+              "width": 886,
+              "height": 26.599999999999998,
+              "fontFamily": "Inter",
+              "fontWeight": 600,
+              "fontSize": 16.0816,
+              "lineHeight": 18.011392000000004,
+              "fill": {
+                "r": 196,
+                "g": 163,
+                "b": 90,
+                "a": 1
+              },
+              "align": "left"
+            },
+            {
+              "id": "text_9df7c280-a4e9-41bc-902a-6178addff5a5",
+              "type": "text",
+              "visible": true,
+              "fontStyle": "normal",
+              "letterSpacing": 0,
+              "name": "Headline",
+              "role": "headline",
+              "text": "Reservations\nare open.",
+              "x": 97,
+              "y": 351,
+              "width": 886,
+              "height": 265.99125000000004,
+              "fontFamily": "Inter",
+              "fontWeight": 700,
+              "fontSize": 100.50669375000001,
+              "lineHeight": 112.56749700000002,
+              "fill": {
+                "r": 255,
+                "g": 255,
+                "b": 255,
+                "a": 1
+              },
+              "align": "left"
+            },
+            {
+              "id": "text_75ec81a6-ea2c-42b7-95b9-d8661173aa88",
+              "type": "text",
+              "visible": true,
+              "fontStyle": "normal",
+              "letterSpacing": 0,
+              "name": "Subhead",
+              "role": "subhead",
+              "text": "Residences above the avenue.",
+              "x": 97,
+              "y": 648.99125,
+              "width": 886,
+              "height": 34.453125,
+              "fontFamily": "Inter",
+              "fontWeight": 400,
+              "fontSize": 23.3289,
+              "lineHeight": 26.128368000000002,
+              "fill": {
+                "r": 255,
+                "g": 255,
+                "b": 255,
+                "a": 1
+              },
+              "align": "left"
+            }
+          ]
+        },
+        {
+          "id": "layer_1b944fbf-c801-4737-a82c-5908ff828665",
+          "name": "Call to action",
+          "visible": true,
+          "locked": false,
+          "children": [
+            {
+              "id": "rect_49b7d04e-6674-43e5-a4d8-67753b5b802e",
+              "type": "rect",
+              "name": "CTA plate",
+              "x": 97,
+              "y": 886,
+              "visible": true,
+              "width": 778,
+              "height": 97,
+              "fill": {
+                "r": 196,
+                "g": 163,
+                "b": 90,
+                "a": 1
+              },
+              "stroke": null,
+              "strokeWidth": 0,
+              "radius": 8
+            },
+            {
+              "id": "text_e5aab0de-5520-47ad-bd39-49a3b39b0253",
+              "type": "text",
+              "visible": true,
+              "fontStyle": "normal",
+              "letterSpacing": 0,
+              "name": "CTA label",
+              "role": "cta",
+              "text": "Reservations Are Open",
+              "x": 97,
+              "y": 918.1640625,
+              "width": 778,
+              "height": 39.20625,
+              "fontFamily": "Inter",
+              "fontWeight": 700,
+              "fontSize": 27.653475,
+              "lineHeight": 30.971892000000004,
+              "fill": {
+                "r": 20,
+                "g": 20,
+                "b": 20,
+                "a": 1
+              },
+              "align": "center"
+            }
+          ]
+        },
+        {
+          "id": "layer_30834280-a251-475a-b33f-d2c19afe621a",
+          "name": "Meta",
+          "visible": true,
+          "locked": false,
+          "children": [
+            {
+              "id": "text_30ce0320-4194-4bbc-9818-d9fa71a2f43d",
+              "type": "text",
+              "visible": true,
+              "fontStyle": "normal",
+              "letterSpacing": 0,
+              "name": "Brand name",
+              "role": "label",
+              "text": "Aether Residences",
+              "x": 97,
+              "y": 832,
+              "width": 886,
+              "height": 27,
+              "fontFamily": "Inter",
+              "fontWeight": 500,
+              "fontSize": 15.64,
+              "lineHeight": 17.516800000000003,
+              "fill": {
+                "r": 255,
+                "g": 255,
+                "b": 255,
+                "a": 1
+              },
+              "align": "left"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "art_8a08bc58-8790-4952-b856-89ac1c432d51",
+      "name": "Instagram story 1",
+      "width": 1080,
+      "height": 1920,
+      "x": 1160,
+      "y": 0,
+      "background": {
+        "r": 27,
+        "g": 58,
+        "b": 47,
+        "a": 1
+      },
+      "layers": [
+        {
+          "id": "layer_d0703aa8-ed2e-4c4c-a7c8-cd570b6be146",
+          "name": "Background",
+          "visible": true,
+          "locked": false,
+          "children": [
+            {
+              "id": "rect_26cefb6b-a3f8-42dc-a983-5671d1bc125c",
+              "type": "rect",
+              "name": "Field",
+              "x": 0,
+              "y": 0,
+              "visible": true,
+              "width": 1080,
+              "height": 1920,
+              "fill": {
+                "r": 27,
+                "g": 58,
+                "b": 47,
+                "a": 1
+              },
+              "stroke": null,
+              "strokeWidth": 0,
+              "radius": 0
+            }
+          ]
+        },
+        {
+          "id": "layer_78fdf6fa-be7c-48fc-9b00-769459fc2dd8",
+          "name": "Brand",
+          "visible": true,
+          "locked": false,
+          "children": [
+            {
+              "id": "rect_4177b442-2152-45bb-a7ce-db8d8b913a28",
+              "type": "rect",
+              "name": "Brand rule",
+              "x": 97,
+              "y": 97,
+              "visible": true,
+              "width": 75,
+              "height": 15,
+              "fill": {
+                "r": 196,
+                "g": 163,
+                "b": 90,
+                "a": 1
+              },
+              "stroke": null,
+              "strokeWidth": 0,
+              "radius": 0
+            },
+            {
+              "id": "text_7434c270-30d0-41fd-8fc6-20a098178796",
+              "type": "text",
+              "visible": true,
+              "fontStyle": "normal",
+              "letterSpacing": 0,
+              "name": "Wordmark",
+              "role": "label",
+              "text": "Aether Residences",
+              "x": 97,
+              "y": 130,
+              "width": 540,
+              "height": 70.2,
+              "fontFamily": "Inter",
+              "fontWeight": 600,
+              "fontSize": 45.705600000000004,
+              "lineHeight": 51.19027200000001,
+              "fill": {
+                "r": 255,
+                "g": 255,
+                "b": 255,
+                "a": 1
+              },
+              "align": "left"
+            }
+          ]
+        },
+        {
+          "id": "layer_8e66456e-8210-40db-ac55-c171311755d0",
+          "name": "Typography",
+          "visible": true,
+          "locked": false,
+          "children": [
+            {
+              "id": "text_84fe52e4-ebce-4383-9574-0aef17184e91",
+              "type": "text",
+              "visible": true,
+              "fontStyle": "normal",
+              "letterSpacing": 3,
+              "name": "Kicker",
+              "role": "kicker",
+              "text": "NEW RESIDENCES",
+              "x": 97,
+              "y": 519,
+              "width": 886,
+              "height": 49,
+              "fontFamily": "Inter",
+              "fontWeight": 600,
+              "fontSize": 29.624000000000002,
+              "lineHeight": 33.17888000000001,
+              "fill": {
+                "r": 196,
+                "g": 163,
+                "b": 90,
+                "a": 1
+              },
+              "align": "left"
+            },
+            {
+              "id": "text_3cb083d0-a104-4aac-8d75-453b6818020b",
+              "type": "text",
+              "visible": true,
+              "fontStyle": "normal",
+              "letterSpacing": 0,
+              "name": "Headline",
+              "role": "headline",
+              "text": "Reservations\nare open.",
+              "x": 97,
+              "y": 589,
+              "width": 886,
+              "height": 386.68875,
+              "fontFamily": "Inter",
+              "fontWeight": 700,
+              "fontSize": 146.11310625000002,
+              "lineHeight": 163.64667900000003,
+              "fill": {
+                "r": 255,
+                "g": 255,
+                "b": 255,
+                "a": 1
+              },
+              "align": "left"
+            },
+            {
+              "id": "text_20f93c2f-de6f-4dc6-9502-84578f80c18b",
+              "type": "text",
+              "visible": true,
+              "fontStyle": "normal",
+              "letterSpacing": 0,
+              "name": "Subhead",
+              "role": "subhead",
+              "text": "Residences above the avenue.",
+              "x": 97,
+              "y": 1033.68875,
+              "width": 886,
+              "height": 62.1484375,
+              "fontFamily": "Inter",
+              "fontWeight": 400,
+              "fontSize": 42.08195,
+              "lineHeight": 47.131784,
+              "fill": {
+                "r": 255,
+                "g": 255,
+                "b": 255,
+                "a": 1
+              },
+              "align": "left"
+            }
+          ]
+        },
+        {
+          "id": "layer_3543c8c9-f0ee-43da-ad0a-7abf578a14e5",
+          "name": "Call to action",
+          "visible": true,
+          "locked": false,
+          "children": [
+            {
+              "id": "rect_bb4bf840-8aac-491e-9879-d66625f56251",
+              "type": "rect",
+              "name": "CTA plate",
+              "x": 97,
+              "y": 1650,
+              "visible": true,
+              "width": 778,
+              "height": 173,
+              "fill": {
+                "r": 196,
+                "g": 163,
+                "b": 90,
+                "a": 1
+              },
+              "stroke": null,
+              "strokeWidth": 0,
+              "radius": 14
+            },
+            {
+              "id": "text_bc098dcc-ef24-4d82-8f58-8b8ab2893abd",
+              "type": "text",
+              "visible": true,
+              "fontStyle": "normal",
+              "letterSpacing": 0,
+              "name": "CTA label",
+              "role": "cta",
+              "text": "Reservations Are Open",
+              "x": 97,
+              "y": 1707.18359375,
+              "width": 778,
+              "height": 70.359375,
+              "fontFamily": "Inter",
+              "fontWeight": 700,
+              "fontSize": 49.62681250000001,
+              "lineHeight": 55.58203000000001,
+              "fill": {
+                "r": 20,
+                "g": 20,
+                "b": 20,
+                "a": 1
+              },
+              "align": "center"
+            }
+          ]
+        },
+        {
+          "id": "layer_1ffa9148-3c57-41d9-a276-02af42dc9e2f",
+          "name": "Meta",
+          "visible": true,
+          "locked": false,
+          "children": [
+            {
+              "id": "text_b03c90c7-36c4-4bad-b54e-9d3d49b9c4f9",
+              "type": "text",
+              "visible": true,
+              "fontStyle": "normal",
+              "letterSpacing": 0,
+              "name": "Brand name",
+              "role": "label",
+              "text": "Aether Residences",
+              "x": 97,
+              "y": 1554,
+              "width": 886,
+              "height": 48,
+              "fontFamily": "Inter",
+              "fontWeight": 500,
+              "fontSize": 26.238400000000002,
+              "lineHeight": 29.387008000000005,
+              "fill": {
+                "r": 255,
+                "g": 255,
+                "b": 255,
+                "a": 1
+              },
+              "align": "left"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "art_f8c20ac5-b378-4b92-8e7d-5d42002650d8",
+      "name": "Facebook cover 1",
+      "width": 1640,
+      "height": 624,
+      "x": 2320,
+      "y": 0,
+      "background": {
+        "r": 27,
+        "g": 58,
+        "b": 47,
+        "a": 1
+      },
+      "layers": [
+        {
+          "id": "layer_061b35c5-9249-4bb7-a682-cf4d545b230c",
+          "name": "Background",
+          "visible": true,
+          "locked": false,
+          "children": [
+            {
+              "id": "rect_b38850fc-acb0-4dc9-9b9e-85a44e4f6dda",
+              "type": "rect",
+              "name": "Field",
+              "x": 0,
+              "y": 0,
+              "visible": true,
+              "width": 1640,
+              "height": 624,
+              "fill": {
+                "r": 27,
+                "g": 58,
+                "b": 47,
+                "a": 1
+              },
+              "stroke": null,
+              "strokeWidth": 0,
+              "radius": 0
+            }
+          ]
+        },
+        {
+          "id": "layer_10eb542a-fb94-4434-b98a-d1922982d284",
+          "name": "Brand",
+          "visible": true,
+          "locked": false,
+          "children": [
+            {
+              "id": "rect_59f9549f-ff0a-4dc2-8a6d-5e6823245f42",
+              "type": "rect",
+              "name": "Brand rule",
+              "x": 37,
+              "y": 37,
+              "visible": true,
+              "width": 45,
+              "height": 9,
+              "fill": {
+                "r": 196,
+                "g": 163,
+                "b": 90,
+                "a": 1
+              },
+              "stroke": null,
+              "strokeWidth": 0,
+              "radius": 0
+            },
+            {
+              "id": "text_b309e52b-83e7-4263-b72d-b8b663caed66",
+              "type": "text",
+              "visible": true,
+              "fontStyle": "normal",
+              "letterSpacing": 0,
+              "name": "Wordmark",
+              "role": "label",
+              "text": "Aether Residences",
+              "x": 37,
+              "y": 56.8,
+              "width": 820,
+              "height": 36.4,
+              "fontFamily": "Inter",
+              "fontWeight": 600,
+              "fontSize": 23.6992,
+              "lineHeight": 26.543104000000003,
+              "fill": {
+                "r": 255,
+                "g": 255,
+                "b": 255,
+                "a": 1
+              },
+              "align": "left"
+            }
+          ]
+        },
+        {
+          "id": "layer_26102be0-4d2a-4662-a900-52ec3599c57a",
+          "name": "Typography",
+          "visible": true,
+          "locked": false,
+          "children": [
+            {
+              "id": "text_5e340bc6-3d1c-4d27-915d-bccf188e5d83",
+              "type": "text",
+              "visible": true,
+              "fontStyle": "normal",
+              "letterSpacing": 3,
+              "name": "Kicker",
+              "role": "kicker",
+              "text": "NEW RESIDENCES",
+              "x": 37,
+              "y": 174,
+              "width": 1566,
+              "height": 19.599999999999998,
+              "fontFamily": "Inter",
+              "fontWeight": 600,
+              "fontSize": 14,
+              "lineHeight": 16.8,
+              "fill": {
+                "r": 196,
+                "g": 163,
+                "b": 90,
+                "a": 1
+              },
+              "align": "left"
+            },
+            {
+              "id": "text_293e9e43-408a-42fc-8fd0-a51b6b56c159",
+              "type": "text",
+              "visible": true,
+              "fontStyle": "normal",
+              "letterSpacing": 0,
+              "name": "Headline",
+              "role": "headline",
+              "text": "Reservations are open.",
+              "x": 37,
+              "y": 202,
+              "width": 1566,
+              "height": 97.02000000000001,
+              "fontFamily": "Inter",
+              "fontWeight": 700,
+              "fontSize": 73.31940000000002,
+              "lineHeight": 82.11772800000003,
+              "fill": {
+                "r": 255,
+                "g": 255,
+                "b": 255,
+                "a": 1
+              },
+              "align": "left"
+            },
+            {
+              "id": "text_61d5ea9b-c349-427b-8dcc-fb100db58440",
+              "type": "text",
+              "visible": true,
+              "fontStyle": "normal",
+              "letterSpacing": 0,
+              "name": "Subhead",
+              "role": "subhead",
+              "text": "Residences above the avenue.",
+              "x": 37,
+              "y": 318.02,
+              "width": 1096.1999999999998,
+              "height": 19.375,
+              "fontFamily": "Inter",
+              "fontWeight": 400,
+              "fontSize": 15.5,
+              "lineHeight": 19.375,
+              "fill": {
+                "r": 255,
+                "g": 255,
+                "b": 255,
+                "a": 1
+              },
+              "align": "left"
+            }
+          ]
+        },
+        {
+          "id": "layer_024a9a62-1f30-4586-816f-8fa204e370f9",
+          "name": "Call to action",
+          "visible": true,
+          "locked": false,
+          "children": [
+            {
+              "id": "rect_0030c4d8-8501-47d9-89e0-a596030720bb",
+              "type": "rect",
+              "name": "CTA plate",
+              "x": 37,
+              "y": 487,
+              "visible": true,
+              "width": 918,
+              "height": 100,
+              "fill": {
+                "r": 196,
+                "g": 163,
+                "b": 90,
+                "a": 1
+              },
+              "stroke": null,
+              "strokeWidth": 0,
+              "radius": 8
+            },
+            {
+              "id": "text_4aca2d63-2eb8-4493-b0fd-d72960c63a93",
+              "type": "text",
+              "visible": true,
+              "fontStyle": "normal",
+              "letterSpacing": 0,
+              "name": "CTA label",
+              "role": "cta",
+              "text": "Reservations Are Open",
+              "x": 37,
+              "y": 520.171875,
+              "width": 918,
+              "height": 40.387499999999996,
+              "fontFamily": "Inter",
+              "fontWeight": 700,
+              "fontSize": 28.48665,
+              "lineHeight": 31.905048000000004,
+              "fill": {
+                "r": 20,
+                "g": 20,
+                "b": 20,
+                "a": 1
+              },
+              "align": "center"
+            }
+          ]
+        },
+        {
+          "id": "layer_42aed697-1c1c-427b-b521-36a69217043b",
+          "name": "Meta",
+          "visible": true,
+          "locked": false,
+          "children": [
+            {
+              "id": "text_f6a30884-cc29-4d64-9341-f878fff8f138",
+              "type": "text",
+              "visible": true,
+              "fontStyle": "normal",
+              "letterSpacing": 0,
+              "name": "Brand name",
+              "role": "label",
+              "text": "Aether Residences",
+              "x": 37,
+              "y": 456,
+              "width": 1566,
+              "height": 16,
+              "fontFamily": "Inter",
+              "fontWeight": 500,
+              "fontSize": 12,
+              "lineHeight": 12,
+              "fill": {
+                "r": 255,
+                "g": 255,
+                "b": 255,
+                "a": 1
+              },
+              "align": "left"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "art_d3ec1983-60c0-4808-96c9-f56a214a10ee",
+      "name": "A4 poster 1",
+      "width": 2480,
+      "height": 3508,
+      "x": 4040,
+      "y": 0,
+      "background": {
+        "r": 27,
+        "g": 58,
+        "b": 47,
+        "a": 1
+      },
+      "layers": [
+        {
+          "id": "layer_dfcdf306-f92b-49f0-b004-858d770c69a4",
+          "name": "Background",
+          "visible": true,
+          "locked": false,
+          "children": [
+            {
+              "id": "rect_eec5e64f-ce8c-4bfe-a97a-35030317deda",
+              "type": "rect",
+              "name": "Field",
+              "x": 0,
+              "y": 0,
+              "visible": true,
+              "width": 2480,
+              "height": 3508,
+              "fill": {
+                "r": 27,
+                "g": 58,
+                "b": 47,
+                "a": 1
+              },
+              "stroke": null,
+              "strokeWidth": 0,
+              "radius": 0
+            }
+          ]
+        },
+        {
+          "id": "layer_c2cfbbfa-e563-4905-9c68-94e451cb24af",
+          "name": "Brand",
+          "visible": true,
+          "locked": false,
+          "children": [
+            {
+              "id": "rect_97302529-9618-4032-a270-2f9cdf84847c",
+              "type": "rect",
+              "name": "Brand rule",
+              "x": 198,
+              "y": 198,
+              "visible": true,
+              "width": 175,
+              "height": 35,
+              "fill": {
+                "r": 196,
+                "g": 163,
+                "b": 90,
+                "a": 1
+              },
+              "stroke": null,
+              "strokeWidth": 0,
+              "radius": 0
+            },
+            {
+              "id": "text_31a948ce-cd2f-4281-a50a-0806b543cf3f",
+              "type": "text",
+              "visible": true,
+              "fontStyle": "normal",
+              "letterSpacing": 0,
+              "name": "Wordmark",
+              "role": "label",
+              "text": "Aether Residences",
+              "x": 198,
+              "y": 275,
+              "width": 1240,
+              "height": 127.4,
+              "fontFamily": "Inter",
+              "fontWeight": 600,
+              "fontSize": 82.94720000000001,
+              "lineHeight": 92.90086400000001,
+              "fill": {
+                "r": 255,
+                "g": 255,
+                "b": 255,
+                "a": 1
+              },
+              "align": "left"
+            }
+          ]
+        },
+        {
+          "id": "layer_b588069c-6759-4e0b-b4d5-3a77ccb93bd8",
+          "name": "Typography",
+          "visible": true,
+          "locked": false,
+          "children": [
+            {
+              "id": "text_6041a03e-bfb5-48bd-a63d-06b40bcb449d",
+              "type": "text",
+              "visible": true,
+              "fontStyle": "normal",
+              "letterSpacing": 3,
+              "name": "Kicker",
+              "role": "kicker",
+              "text": "NEW RESIDENCES",
+              "x": 198,
+              "y": 900,
+              "width": 2084,
+              "height": 68.6,
+              "fontFamily": "Inter",
+              "fontWeight": 600,
+              "fontSize": 41.473600000000005,
+              "lineHeight": 46.450432000000006,
+              "fill": {
+                "r": 196,
+                "g": 163,
+                "b": 90,
+                "a": 1
+              },
+              "align": "left"
+            },
+            {
+              "id": "text_b054bae5-284a-42c1-b389-7156b456eb85",
+              "type": "text",
+              "visible": true,
+              "fontStyle": "normal",
+              "letterSpacing": 0,
+              "name": "Headline",
+              "role": "headline",
+              "text": "Reservations are\nopen.",
+              "x": 198,
+              "y": 998,
+              "width": 2084,
+              "height": 550.449375,
+              "fontFamily": "Inter",
+              "fontWeight": 700,
+              "fontSize": 207.99122812500002,
+              "lineHeight": 232.95017550000006,
+              "fill": {
+                "r": 255,
+                "g": 255,
+                "b": 255,
+                "a": 1
+              },
+              "align": "left"
+            },
+            {
+              "id": "text_a88060b9-433f-49e0-afda-ebb05e07ad5c",
+              "type": "text",
+              "visible": true,
+              "fontStyle": "normal",
+              "letterSpacing": 0,
+              "name": "Subhead",
+              "role": "subhead",
+              "text": "Residences above the avenue.",
+              "x": 198,
+              "y": 1653.4493750000001,
+              "width": 2084,
+              "height": 78.271484375,
+              "fontFamily": "Inter",
+              "fontWeight": 400,
+              "fontSize": 52.999187500000005,
+              "lineHeight": 59.35909000000001,
+              "fill": {
+                "r": 255,
+                "g": 255,
+                "b": 255,
+                "a": 1
+              },
+              "align": "left"
+            }
+          ]
+        },
+        {
+          "id": "layer_19249345-6fd4-4bb4-ac2f-49fb678b5a27",
+          "name": "Call to action",
+          "visible": true,
+          "locked": false,
+          "children": [
+            {
+              "id": "rect_a9a52cb3-04c1-49b2-9b6d-0c4ff67e9afb",
+              "type": "rect",
+              "name": "CTA plate",
+              "x": 198,
+              "y": 2994,
+              "visible": true,
+              "width": 1786,
+              "height": 316,
+              "fill": {
+                "r": 196,
+                "g": 163,
+                "b": 90,
+                "a": 1
+              },
+              "stroke": null,
+              "strokeWidth": 0,
+              "radius": 0
+            },
+            {
+              "id": "text_a02269e5-556c-40b6-bf14-d4a3454fb805",
+              "type": "text",
+              "visible": true,
+              "fontStyle": "normal",
+              "letterSpacing": 0,
+              "name": "CTA label",
+              "role": "cta",
+              "text": "Reservations Are Open",
+              "x": 198,
+              "y": 3098.685546875,
+              "width": 1786,
+              "height": 127.95468749999999,
+              "fontFamily": "Inter",
+              "fontWeight": 700,
+              "fontSize": 90.25070625000001,
+              "lineHeight": 101.08079100000002,
+              "fill": {
+                "r": 20,
+                "g": 20,
+                "b": 20,
+                "a": 1
+              },
+              "align": "center"
+            }
+          ]
+        },
+        {
+          "id": "layer_62302954-9ce9-407e-9c02-4bc80302b375",
+          "name": "Meta",
+          "visible": true,
+          "locked": false,
+          "children": [
+            {
+              "id": "text_e1ec8f58-03ce-47b8-9bcd-80e021720f8b",
+              "type": "text",
+              "visible": true,
+              "fontStyle": "normal",
+              "letterSpacing": 0,
+              "name": "Brand name",
+              "role": "label",
+              "text": "Aether Residences",
+              "x": 198,
+              "y": 2819,
+              "width": 2084,
+              "height": 88,
+              "fontFamily": "Inter",
+              "fontWeight": 500,
+              "fontSize": 47.3984,
+              "lineHeight": 53.086208000000006,
+              "fill": {
+                "r": 255,
+                "g": 255,
+                "b": 255,
+                "a": 1
+              },
+              "align": "left"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -44,3 +44,5 @@ pnpm cli open-illustrator --jsx data/jobs/<task-id>/illustrator-job.jsx
 - [Testing](docs/TESTING.md)
 
 Optional LLM: set `OPENAI_API_KEY`. Without it, the heuristic planner runs and traces say so.
+
+**Cannot find `illustrator-job.jsx`?** It is not on `main` and not in `data/` on GitHub. Use the PR branch example: [examples/aether-reservations/illustrator-job.jsx](https://github.com/NebyuDaniel6/NebyuDaniel6/blob/cursor/ai-creative-department-c765/examples/aether-reservations/illustrator-job.jsx).

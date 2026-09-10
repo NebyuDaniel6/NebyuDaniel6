@@ -54,6 +54,14 @@ pnpm cli open-illustrator --jsx data/jobs/<task-id>/illustrator-job.jsx
 
 You can also File → Scripts → Other Script… inside Illustrator and pick that `.jsx`.
 
+**If you cannot find any `.jsx` on your Mac:** it was never copied there. Generated jobs stay on the Cloud Agent VM and are not committed (`data/` is gitignored). Download the example that *is* in the repo:
+
+https://github.com/NebyuDaniel6/NebyuDaniel6/blob/cursor/ai-creative-department-c765/examples/aether-reservations/illustrator-job.jsx
+
+You must be on branch `cursor/ai-creative-department-c765`. GitHub `main` is still only the profile README.
+
+See [examples/README.md](../examples/README.md).
+
 Or open the `.svg` files in Illustrator — they are editable vector with named layers and live type.
 
 ## Do you always use it in the Cloud Agent?
