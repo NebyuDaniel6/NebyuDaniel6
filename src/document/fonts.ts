@@ -59,6 +59,14 @@ export function resolveFont(family: string, weight = 400): ResolvedFont {
   if (fallback && fs.existsSync(fallback)) {
     return { family: "Inter", file: fallback, substituted: family !== "Inter", requested: family };
   }
+  const lastResort = [
+    "/System/Library/Fonts/Supplemental/Arial.ttf",
+    "/Library/Fonts/Arial.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+  ].find((p) => fs.existsSync(p));
+  if (lastResort) {
+    return { family: "Arial", file: lastResort, substituted: true, requested: family };
+  }
   throw new Error(`No usable font found for ${family}`);
 }
 

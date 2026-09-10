@@ -20,7 +20,7 @@ import {
 } from "../tasks/engine.ts";
 import { audit } from "../security/audit.ts";
 import { endSpan, startSpan, type ExecutionTrace, type TraceSpan } from "../observability/trace.ts";
-import { saveTrace } from "../observability/store.ts";
+import { getLatestTrace, saveTrace } from "../observability/store.ts";
 import { getDb } from "../db/client.ts";
 import { id } from "../lib/ids.ts";
 import { jobDir } from "../lib/paths.ts";
@@ -30,6 +30,7 @@ import { detectIllustrator } from "../connectors/illustrator/detect.ts";
 import { normalizeStudio } from "../studio/profile.ts";
 import { ensureStudioWorkspace, ingestStudioPhoto } from "../studio/workspace.ts";
 import type { StudioInput, TargetApp } from "../studio/types.ts";
+import { canTransition } from "../tasks/states.ts";
 
 export interface RunRequest {
   brief: string;
@@ -64,7 +65,7 @@ export interface RunSnapshot {
   trace: ExecutionTrace;
 }
 
-export async function startJob(req: RunRequest): Promise<RunSnapshot> {
+export function createStudioTask(req: RunRequest): TaskRecord {
   const useStudio = Boolean(req.studio) || !req.orgId || !req.brandId || !req.projectId;
   const studio = useStudio ? normalizeStudio(req.studio ?? {}, req.brief) : undefined;
 
@@ -93,7 +94,7 @@ export async function startJob(req: RunRequest): Promise<RunSnapshot> {
     formatIds: studio?.formats,
     businessName: studio?.businessName,
   });
-  const task = createTask({
+  return createTask({
     orgId,
     brandId,
     projectId,
@@ -101,7 +102,66 @@ export async function startJob(req: RunRequest): Promise<RunSnapshot> {
     brief: req.brief,
     policy,
   });
-  return continueJob(task.id);
+}
+
+export async function startJob(req: RunRequest): Promise<RunSnapshot> {
+  return continueJob(createStudioTask(req).id);
+}
+
+/** HTTP path: return the task immediately so the UI is not stuck on “Running…”. */
+export function enqueueJob(req: RunRequest): TaskRecord {
+  const task = createStudioTask(req);
+  setImmediate(() => {
+    continueJob(task.id).catch((error) => failOpenTask(task.id, error));
+  });
+  return task;
+}
+
+function failOpenTask(taskId: string, error: unknown): void {
+  const message = error instanceof Error ? error.message : String(error);
+  const task = getTask(taskId);
+  if (!task || task.status === "approved" || task.status === "failed") {
+    saveResult(taskId, { error: { code: "job_failed", message } });
+    return;
+  }
+  try {
+    if (canTransition(task.status, "failed")) transition(taskId, "failed", { reason: message });
+  } catch {
+    /* already terminal */
+  }
+  saveResult(taskId, { error: { code: "job_failed", message } });
+}
+
+export function hydrateSnapshot(taskId: string): RunSnapshot | null {
+  const task = getTask(taskId);
+  if (!task) return null;
+  const result = (task.result ?? {}) as Partial<RunSnapshot> & { error?: RunSnapshot["error"] };
+  const waitingFor: RunSnapshot["waitingFor"] =
+    task.status === "awaiting_direction_approval"
+      ? "direction"
+      : task.status === "awaiting_final_approval"
+        ? "final"
+        : undefined;
+  const files = result.files ?? listDeliverables(taskId).map((d) => d.path);
+  return {
+    task,
+    brief: result.brief,
+    plan: (result.plan as CampaignPlan | undefined) ?? (task.plan as CampaignPlan | null) ?? undefined,
+    qc: result.qc,
+    files,
+    illustratorRuntime: result.illustratorRuntime,
+    photoshopRuntime: result.photoshopRuntime,
+    targetApp: result.targetApp ?? task.policy.studio?.targetApp,
+    waitingFor,
+    error: result.error,
+    trace: getLatestTrace(taskId) ?? {
+      taskId,
+      plan: [],
+      spans: [],
+      toolsUsed: [],
+      result: task.status,
+    },
+  };
 }
 
 export async function continueJob(taskId: string, decision?: "approve" | "reject", note?: string): Promise<RunSnapshot> {
@@ -329,32 +389,20 @@ export async function continueJob(taskId: string, decision?: "approve" | "reject
     const illustratorRuntime = {
       attempted: false,
       ok: false,
-      message: detection.message,
+      message:
+        jsx
+          ? `${detection.message} Files are ready — open illustrator-job.jsx in Illustrator (File → Scripts → Other Script). Each format is its own artboard. The studio does not wait for Illustrator, so this page will not freeze.`
+          : detection.message,
     };
     const photoshopRuntime = {
       attempted: false,
       ok: false,
-      message:
-        "Adobe Photoshop is not driven from this Linux host. Open photoshop-job.jsx on a Mac with Photoshop (File → Scripts → Other Script). Photoshop gets one document per format — not stacked artboards.",
+      message: psjsx
+        ? "Open photoshop-job.jsx in Photoshop (File → Scripts). One document per format. This page does not wait for Photoshop."
+        : "Adobe Photoshop is not driven from this host.",
     };
-
-    if (targetApp === "illustrator" && jsx && detection.installed) {
-      illustratorRuntime.attempted = true;
-      const opened = await invokeTool(
-        "illustrator.run_extendscript",
-        { jsxPath: jsx },
-        { taskId: task.id, orgId: task.orgId, brandId: brand.id },
-      );
-      recordTool("illustrator.run_extendscript");
-      illustratorRuntime.ok = opened.ok;
-      illustratorRuntime.message = opened.ok
-        ? "Opened the job inside Adobe Illustrator on this computer via ExtendScript (no mouse)."
-        : JSON.stringify(opened.output);
-    } else if (targetApp === "illustrator") {
-      illustratorRuntime.message = `${detection.message} Editable SVG and illustrator-job.jsx were still written. Each format is its own artboard with offset coordinates — artwork is not stacked on artboard 1. Run this project on the Mac that has Illustrator, with Illustrator open, to rebuild native .ai artboards.`;
-    } else {
+    if (targetApp === "photoshop") {
       illustratorRuntime.message = "Target app is Photoshop; Illustrator JSX was not written for this job.";
-      if (psjsx) photoshopRuntime.message = `${photoshopRuntime.message} File: ${psjsx}`;
     }
 
     addMemory({

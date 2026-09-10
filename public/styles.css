@@ -71,6 +71,9 @@ button.ghost { background: transparent; color: var(--ink); border: 1px solid var
 .previews figure { margin: 0; background: #0d0f0c; border: 1px solid var(--line); padding: 8px; }
 .previews img, .previews object { width: 100%; display: block; background: #0d0f0c; }
 .previews figcaption { font-size: 11px; color: var(--muted); margin-top: 6px; word-break: break-all; }
+.downloads { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.file-link { color: var(--gold); font-size: 13px; }
+button:disabled { opacity: 0.55; cursor: wait; }
 .hidden { display: none; }
 #qc { font-size: 14px; margin: 12px 0; }
 .findings { list-style: none; padding: 0; }

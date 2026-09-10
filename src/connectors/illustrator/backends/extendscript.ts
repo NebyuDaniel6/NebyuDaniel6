@@ -28,7 +28,7 @@ export function executeExtendScript(jsxPath: string): Result<{ stdout: string; m
     try {
       const stdout = execFileSync("osascript", ["-e", appleScript], {
         encoding: "utf8",
-        timeout: 60_000,
+        timeout: 15_000,
       });
       return { ok: true, value: { stdout, method: "osascript-extendscript" } };
     } catch (error) {

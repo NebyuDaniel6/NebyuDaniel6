@@ -1,4 +1,8 @@
-const state = { lastTaskId: null, photo: null };
+const state = { lastTaskId: null, pollTimer: null };
+
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
 
 async function api(path, opts) {
   const res = await fetch(path, {
@@ -14,16 +18,46 @@ function selectedFormats() {
   return [...document.querySelectorAll('input[name="format"]:checked')].map((el) => el.value);
 }
 
+function setBusy(busy, label) {
+  const btn = document.getElementById("run");
+  btn.disabled = busy;
+  btn.textContent = busy ? "Working…" : "Make the campaign";
+  if (label) document.getElementById("task-meta").textContent = label;
+}
+
+function showError(err) {
+  document.getElementById("task-meta").textContent = `Failed · ${err}`;
+  document.getElementById("qc").innerHTML = `<p class="muted">${err}</p>`;
+}
+
+function terminal(snap) {
+  const status = snap.task?.status;
+  return (
+    snap.error ||
+    snap.waitingFor ||
+    status === "approved" ||
+    status === "failed" ||
+    status === "blocked"
+  );
+}
+
+function fileUrl(f) {
+  return `/api/files?path=${encodeURIComponent(f)}`;
+}
+
 function renderSnapshot(snap) {
   const task = snap.task;
+  if (!task) return;
   state.lastTaskId = task.id;
-  const app = snap.targetApp || "illustrator";
-  document.getElementById("task-meta").textContent = `${task.status} · ${app} · ${task.id}`;
+  const app = snap.targetApp || task.policy?.studio?.targetApp || "illustrator";
+  const elapsed = snap.running ? "working" : task.status;
+  document.getElementById("task-meta").textContent = `${elapsed} · ${app} · ${task.id}`;
   const hostNote = [];
+  if (snap.error) {
+    hostNote.push(`<p class="muted">${snap.error.message || snap.error}</p>`);
+  }
   if (snap.illustratorRuntime) {
-    hostNote.push(
-      `<p class="muted">${snap.illustratorRuntime.ok ? "Illustrator on this computer opened the job." : snap.illustratorRuntime.message}</p>`,
-    );
+    hostNote.push(`<p class="muted">${snap.illustratorRuntime.message}</p>`);
   }
   if (snap.photoshopRuntime && app === "photoshop") {
     hostNote.push(`<p class="muted">${snap.photoshopRuntime.message}</p>`);
@@ -48,15 +82,21 @@ function renderSnapshot(snap) {
         ? `Proposed direction: ${snap.plan?.concept || "See plan."}`
         : "Final work is ready for approval.";
   } else box.classList.add("hidden");
+  const files = snap.files || (snap.deliverables || []).map((d) => d.path);
   const previews = document.getElementById("previews");
-  const files = snap.files || [];
-  previews.innerHTML = files
+  const images = files
     .filter((f) => /\.(svg|png|jpg|jpeg)$/i.test(f))
     .map((f) => {
-      const src = `/api/files?path=${encodeURIComponent(f)}`;
+      const src = fileUrl(f);
       return `<figure><img src="${src}" alt=""><figcaption>${f.split("/").pop()}</figcaption></figure>`;
-    })
-    .join("");
+    });
+  const downloads = files
+    .filter((f) => /\.(jsx|pdf|json)$/i.test(f))
+    .map((f) => {
+      const name = f.split("/").pop();
+      return `<a class="file-link" href="${fileUrl(f)}" download="${name}">${name}</a>`;
+    });
+  previews.innerHTML = `${downloads.length ? `<div class="downloads">${downloads.join(" ")}</div>` : ""}${images.join("")}`;
 }
 
 function fileToBase64(file) {
@@ -72,8 +112,27 @@ function fileToBase64(file) {
   });
 }
 
+async function pollUntilDone(taskId) {
+  const started = Date.now();
+  while (Date.now() - started < 90_000) {
+    const snap = await api(`/api/tasks/${taskId}`);
+    renderSnapshot(snap);
+    const secs = Math.round((Date.now() - started) / 1000);
+    if (!terminal(snap)) {
+      document.getElementById("task-meta").textContent = `${snap.task.status} · ${secs}s · ${taskId}`;
+    }
+    if (terminal(snap)) return snap;
+    await sleep(400);
+  }
+  throw new Error("Still running after 90s. Uncheck extra formats (A4 is large) and try again. Open Illustrator separately — this page no longer waits for it.");
+}
+
 async function runJob() {
   const file = document.getElementById("photo").files[0];
+  if (file && file.size > 4 * 1024 * 1024) {
+    showError("Photo must be under 4 MB.");
+    return;
+  }
   let photoBase64;
   let photoFilename;
   let photoMime;
@@ -97,21 +156,44 @@ async function runJob() {
     photoMime,
     autoApprove: document.getElementById("auto").checked,
   };
-  document.getElementById("task-meta").textContent = "Running…";
-  const snap = await api("/api/jobs", { method: "POST", body: JSON.stringify(body) });
-  renderSnapshot(snap);
+  setBusy(true, "Starting…");
+  try {
+    const started = await api("/api/jobs", { method: "POST", body: JSON.stringify(body) });
+    if (started.error) throw new Error(started.error);
+    state.lastTaskId = started.task.id;
+    renderSnapshot(started);
+    if (terminal(started) && started.task.status !== "planning") {
+      return;
+    }
+    await pollUntilDone(started.task.id);
+  } catch (e) {
+    showError(e.message || e);
+  } finally {
+    setBusy(false);
+  }
 }
 
 async function decide(decision) {
   if (!state.lastTaskId) return;
-  const snap = await api(`/api/tasks/${state.lastTaskId}/decision`, {
-    method: "POST",
-    body: JSON.stringify({ decision }),
-  });
-  renderSnapshot(snap);
+  setBusy(true, "Continuing…");
+  try {
+    const snap = await api(`/api/tasks/${state.lastTaskId}/decision`, {
+      method: "POST",
+      body: JSON.stringify({ decision }),
+    });
+    if (snap.running || (snap.task && !terminal(snap))) {
+      await pollUntilDone(snap.task.id);
+      return;
+    }
+    renderSnapshot(snap);
+  } catch (e) {
+    showError(e.message || e);
+  } finally {
+    setBusy(false);
+  }
 }
 
-document.getElementById("run").addEventListener("click", () => runJob().catch((e) => alert(e.message)));
+document.getElementById("run").addEventListener("click", () => runJob());
 document.getElementById("approve").addEventListener("click", () => decide("approve"));
 document.getElementById("reject").addEventListener("click", () => decide("reject"));
 
@@ -119,8 +201,7 @@ document.getElementById("reject").addEventListener("click", () => decide("reject
   try {
     const health = await api("/api/connectors");
     const illo = health.illustrator?.message || "Illustrator unknown";
-    const ps = health.photoshop?.message || "";
-    document.getElementById("connector-status").textContent = `${health.illustrator?.backend || "—"} · ${illo} ${ps}`;
+    document.getElementById("connector-status").textContent = `${health.illustrator?.backend || "—"} · ${illo}`;
   } catch (err) {
     document.getElementById("connector-status").textContent = String(err);
   }

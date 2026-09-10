@@ -69,12 +69,15 @@ export async function exportSession(
   if (wants.has("psjsx")) {
     files.push(writePhotoshopScript(live.document, path.join(dir, "photoshop-job.jsx")));
   }
+  let pngs: string[] = [];
   if (wants.has("png") || wants.has("jpg")) {
     const rasterDir = path.join(dir, "raster");
     fs.mkdirSync(rasterDir, { recursive: true });
     for (const [i, art] of live.document.artboards.entries()) {
       if (wants.has("png")) {
-        files.push(exportArtboardRaster(art, path.join(rasterDir, `${String(i + 1).padStart(2, "0")}.png`), "png"));
+        const p = exportArtboardRaster(art, path.join(rasterDir, `${String(i + 1).padStart(2, "0")}.png`), "png");
+        files.push(p);
+        pngs.push(p);
       }
       if (wants.has("jpg")) {
         files.push(exportArtboardRaster(art, path.join(rasterDir, `${String(i + 1).padStart(2, "0")}.jpg`), "jpeg"));
@@ -82,7 +85,7 @@ export async function exportSession(
     }
   }
   if (wants.has("pdf")) {
-    files.push(await exportDocumentPdf(live.document, path.join(dir, "campaign.pdf")));
+    files.push(await exportDocumentPdf(live.document, path.join(dir, "campaign.pdf"), pngs));
   }
   return ok({ files, inspect: inspectDocument(live.document) });
 }

@@ -6,15 +6,14 @@ import fs from "node:fs";
 import { REPO_ROOT } from "../lib/paths.ts";
 import { probeEnvironment } from "../env/probe.ts";
 import { seedSampleWorld } from "../seed.ts";
-import { startJob, continueJob, listDeliverables } from "../agent/orchestrator.ts";
+import { continueJob, enqueueJob, hydrateSnapshot, listDeliverables } from "../agent/orchestrator.ts";
 import { listOrgs, listProjects } from "../tenant/service.ts";
 import { listBrands } from "../brand/service.ts";
-import { listTasks, getTask, listEvents } from "../tasks/engine.ts";
+import { listTasks, listEvents } from "../tasks/engine.ts";
 import { listTools } from "../tools/registry.ts";
 import { loadSkills } from "../skills/loader.ts";
 import { getConnector } from "../connectors/types.ts";
 import { searchAssets } from "../assets/service.ts";
-import { getLatestTrace } from "../observability/store.ts";
 import { ingestAsset } from "../assets/service.ts";
 import { log } from "../lib/logger.ts";
 import { boot } from "../bootstrap.ts";
@@ -55,13 +54,12 @@ export function createApp(): Hono {
     return c.json(searchAssets({ orgId: c.req.param("orgId"), query: c.req.query("q") ?? undefined }));
   });
   app.get("/api/tasks/:taskId", (c) => {
-    const task = getTask(c.req.param("taskId"));
-    if (!task) return c.json({ error: "not_found" }, 404);
+    const snap = hydrateSnapshot(c.req.param("taskId"));
+    if (!snap) return c.json({ error: "not_found" }, 404);
     return c.json({
-      task,
-      events: listEvents(task.id),
-      trace: getLatestTrace(task.id),
-      deliverables: listDeliverables(task.id),
+      ...snap,
+      events: listEvents(snap.task.id),
+      deliverables: listDeliverables(snap.task.id),
     });
   });
   app.post("/api/jobs", async (c) => {
@@ -97,15 +95,23 @@ export function createApp(): Hono {
       photoFilename: body.photoFilename,
       photoMime: body.photoMime,
     };
-    const snapshot = await startJob({
-      brief: body.brief,
-      autoApprove: body.autoApprove,
-      studio,
-      orgId: body.orgId,
-      brandId: body.brandId,
-      projectId: body.projectId,
-    });
-    return c.json(snapshot);
+    try {
+      const task = enqueueJob({
+        brief: body.brief,
+        autoApprove: body.autoApprove,
+        studio,
+        orgId: body.orgId,
+        brandId: body.brandId,
+        projectId: body.projectId,
+      });
+      return c.json({
+        task,
+        running: true,
+        trace: { taskId: task.id, spans: [], toolsUsed: [], plan: [], result: task.status },
+      });
+    } catch (error) {
+      return c.json({ error: error instanceof Error ? error.message : String(error) }, 500);
+    }
   });
   app.post("/api/tasks/:taskId/decision", async (c) => {
     const body = await c.req.json<{ decision: "approve" | "reject"; note?: string }>();
@@ -152,6 +158,8 @@ export function createApp(): Hono {
           ? "image/png"
           : ext === ".pdf"
             ? "application/pdf"
+            : ext === ".jsx"
+              ? "text/plain"
             : ext === ".json"
               ? "application/json"
               : "application/octet-stream";

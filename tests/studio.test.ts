@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { boot } from "../src/bootstrap.ts";
-import { startJob } from "../src/agent/orchestrator.ts";
+import { hydrateSnapshot, startJob } from "../src/agent/orchestrator.ts";
 import { normalizeStudio, photoIdeaFromPrompt, profileFromStudio } from "../src/studio/profile.ts";
 import { compileExtendScript } from "../src/document/export/jsx.ts";
+import { createApp } from "../src/server/app.ts";
 import { useIsolatedDb } from "./helpers.ts";
 import fs from "node:fs";
 
@@ -94,5 +95,35 @@ describe("local-business studio", () => {
     expect(snap.files?.some((f) => f.endsWith("illustrator-job.jsx"))).toBe(false);
     expect(snap.photoshopRuntime?.attempted).toBe(false);
     expect(snap.photoshopRuntime?.message.toLowerCase()).toMatch(/photoshop/);
+  });
+
+  it("returns from POST /api/jobs immediately and finishes when polled", async () => {
+    boot();
+    const app = createApp();
+    const t0 = Date.now();
+    const res = await app.request("/api/jobs", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        brief: "Now open. Instagram post. Book now.",
+        businessName: "Quick Shop",
+        autoApprove: true,
+        formats: ["instagram-post"],
+        fontStyle: "modern-sans",
+        designStyle: "editorial",
+        targetApp: "illustrator",
+      }),
+    });
+    const json = (await res.json()) as { running?: boolean; task: { id: string; status: string } };
+    expect(Date.now() - t0).toBeLessThan(800);
+    expect(json.running).toBe(true);
+    expect(json.task.status).toBe("planning");
+    let snap = hydrateSnapshot(json.task.id);
+    for (let i = 0; i < 40 && snap && !["approved", "failed"].includes(snap.task.status); i += 1) {
+      await new Promise((r) => setTimeout(r, 100));
+      snap = hydrateSnapshot(json.task.id);
+    }
+    expect(snap?.task.status).toBe("approved");
+    expect(snap?.files?.some((f) => f.endsWith("illustrator-job.jsx"))).toBe(true);
   });
 });
