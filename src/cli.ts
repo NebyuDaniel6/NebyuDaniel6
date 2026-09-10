@@ -63,6 +63,7 @@ program
           planner: current.plan?.planner,
           files: current.files,
           qc: current.qc,
+          illustratorRuntime: current.illustratorRuntime,
           error: current.error,
           toolsUsed: current.trace.toolsUsed,
           waitingFor: current.waitingFor,
@@ -105,6 +106,18 @@ program
     boot();
     const illo = getConnector("illustrator");
     console.log(JSON.stringify(illo?.health() ?? { error: "missing" }, null, 2));
+  });
+
+program
+  .command("open-illustrator")
+  .description("Rebuild a compiled .jsx inside Adobe Illustrator on THIS computer (macOS). Does not move the mouse.")
+  .requiredOption("--jsx <path>", "Path to illustrator-job.jsx")
+  .action(async (opts: { jsx: string }) => {
+    boot();
+    const { invokeTool } = await import("./tools/registry.ts");
+    const result = await invokeTool("illustrator.run_extendscript", { jsxPath: opts.jsx }, {});
+    console.log(JSON.stringify(result, null, 2));
+    if (!result.ok) process.exitCode = 1;
   });
 
 await program.parseAsync(process.argv);

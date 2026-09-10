@@ -75,4 +75,20 @@ export function registerIllustratorTools(): void {
       return result.data;
     },
   });
+
+  registerTool({
+    name: "illustrator.run_extendscript",
+    description:
+      "Execute a compiled .jsx inside a running Adobe Illustrator on this machine (AppleScript on macOS). Does not move the mouse.",
+    application: "illustrator",
+    risk: "medium",
+    permissions: [{ name: "illustrator.execute", description: "Run ExtendScript in Illustrator" }],
+    inputSchema: z.object({ jsxPath: z.string() }),
+    outputSchema: z.any(),
+    async execute(input: { jsxPath: string }) {
+      const result = await connector().execute({ name: "run_extendscript", input });
+      if (!result.ok) throw new Error(result.error?.message ?? "run_extendscript failed");
+      return result.data;
+    },
+  });
 }

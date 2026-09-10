@@ -34,5 +34,7 @@ describe("end-to-end campaign", () => {
       expect(fs.statSync(file).size).toBeGreaterThan(32);
     }
     expect(snap.qc?.verdict).toBe("pass");
+    expect(snap.illustratorRuntime?.attempted).toBe(false);
+    expect(snap.illustratorRuntime?.message.toLowerCase()).toMatch(/linux|not available/);
   });
 });

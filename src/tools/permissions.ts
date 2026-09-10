@@ -15,6 +15,7 @@ const DEFAULT_ALLOW = new Set([
   "illustrator.inspect",
   "illustrator.export",
   "illustrator.save_source",
+  "illustrator.run_extendscript",
   "computer.screenshot",
   "computer.identify_application",
 ]);

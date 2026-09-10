@@ -2,6 +2,8 @@
 
 Illustrator is the first `ApplicationConnector`. It is not the whole product.
 
+**A Cloud Agent on Linux cannot control Illustrator on your Mac.** See [WHERE_THIS_RUNS.md](./WHERE_THIS_RUNS.md).
+
 ## Detection (honest)
 
 `src/connectors/illustrator/detect.ts` looks for:
@@ -9,16 +11,31 @@ Illustrator is the first `ApplicationConnector`. It is not the whole product.
 - `ILLUSTRATOR_PATH`
 - `illustrator` on `PATH`
 - Standard macOS `.app` locations
-- A running process named illustrator
+- A running process whose name contains `illustrator`
 
-On this Linux host: **not installed, not running**. AppleScript and COM are unavailable.
+On the Cloud Agent Linux host: **not installed, not running**. AppleScript and COM are unavailable.
+
+## How Illustrator is driven (not the mouse)
+
+The intended Mac path is **ExtendScript**, not GUI clicking:
+
+```
+tell application "Adobe Illustrator"
+  activate
+  do javascript file POSIX file "/path/to/illustrator-job.jsx"
+end tell
+```
+
+You should see Illustrator come to the front and create artboards. The pointer should stay still.
+
+Mouse control (`computer.click`) is a separate, dangerous fallback and is **disabled** unless `CREATIVE_AGENT_ALLOW_COMPUTER_CONTROL=1` on **that same machine**.
 
 ## Backends
 
 | Backend | When used | What it actually does |
 | --- | --- | --- |
-| `svg-document` | Default here | Typed document model → SVG (named layers, live text), JSON source, PNG/JPEG, PDF, ExtendScript `.jsx` |
-| `extendscript` | Illustrator installed **and** running on macOS/Windows | Executes the compiled JSX via `osascript` (macOS). Windows COM is stubbed until a Windows host is detected. |
+| `svg-document` | Default on Linux / when Illustrator is missing | Typed document model → SVG (named layers, live text), JSON source, PNG/JPEG, PDF, ExtendScript `.jsx` |
+| `extendscript` | Illustrator installed **and** running on this Mac | After export, runs the compiled JSX via `osascript`. `pnpm cli open-illustrator --jsx …` does the same. |
 | `computer-control` | Only if `CREATIVE_AGENT_ALLOW_COMPUTER_CONTROL=1` **and** Illustrator is the focused app | Screenshot / identify. Will not click if the foreground app is not Illustrator. |
 
 ## Capabilities (model)

@@ -26,6 +26,7 @@ import { id } from "../lib/ids.ts";
 import { jobDir } from "../lib/paths.ts";
 import type { DesignDocument } from "../document/types.ts";
 import type { QcReport } from "../qc/types.ts";
+import { detectIllustrator } from "../connectors/illustrator/detect.ts";
 
 export interface RunRequest {
   orgId: string;
@@ -42,6 +43,11 @@ export interface RunSnapshot {
   plan?: CampaignPlan;
   qc?: QcReport;
   files?: string[];
+  illustratorRuntime?: {
+    attempted: boolean;
+    ok: boolean;
+    message: string;
+  };
   connectorHealth?: Record<string, unknown>;
   waitingFor?: "direction" | "final";
   error?: { code: string; message: string };
@@ -267,6 +273,30 @@ export async function continueJob(taskId: string, decision?: "approve" | "reject
     }
     const files = ((exported.output as { files?: string[] })?.files ?? []) as string[];
     persistDeliverables(task.id, files);
+
+    const jsx = files.find((f) => f.endsWith(".jsx"));
+    const detection = detectIllustrator();
+    const illustratorRuntime = {
+      attempted: false,
+      ok: false,
+      message: detection.message,
+    };
+    if (jsx && detection.installed) {
+      illustratorRuntime.attempted = true;
+      const opened = await invokeTool(
+        "illustrator.run_extendscript",
+        { jsxPath: jsx },
+        { taskId: task.id, orgId: task.orgId, brandId: brand.id },
+      );
+      recordTool("illustrator.run_extendscript");
+      illustratorRuntime.ok = opened.ok;
+      illustratorRuntime.message = opened.ok
+        ? "Opened the job inside Adobe Illustrator on this computer via ExtendScript (no mouse)."
+        : JSON.stringify(opened.output);
+    } else {
+      illustratorRuntime.message = `${detection.message} Editable SVG and illustrator-job.jsx were still written. Run this project on the Mac that has Illustrator, with Illustrator open, to rebuild native .ai artboards.`;
+    }
+
     addMemory({
       brandId: brand.id,
       strength: "approved_concept",
@@ -275,13 +305,13 @@ export async function continueJob(taskId: string, decision?: "approve" | "reject
       sourceTaskId: task.id,
     });
     recordTool("brand.remember");
-    span = endSpan(span, true, { files });
+    span = endSpan(span, true, { files, illustratorRuntime });
     spans.push(span);
     const approved = transition(task.id, "approved");
-    const result = { files, plan, qc };
+    const result = { files, plan, qc, illustratorRuntime };
     saveResult(task.id, result);
     audit({ orgId: task.orgId, actor: "orchestrator", action: "task.approved", payload: { taskId: task.id } });
-    return snapshot(approved, spans, toolsUsed, { brief: parsed, plan, qc, files });
+    return snapshot(approved, spans, toolsUsed, { brief: parsed, plan, qc, files, illustratorRuntime });
   }
 
   return snapshot(getTask(task.id)!, spans, toolsUsed, { brief: parsed, plan, qc });

@@ -35,6 +35,9 @@ function renderSnapshot(snap) {
   const task = snap.task;
   state.lastTaskId = task.id;
   document.getElementById("task-meta").textContent = `${task.status} · ${task.id}`;
+  const hostNote = snap.illustratorRuntime
+    ? `<p class="muted">${snap.illustratorRuntime.ok ? "Illustrator on this computer opened the job." : snap.illustratorRuntime.message}</p>`
+    : "";
   const trace = document.getElementById("trace");
   trace.innerHTML = (snap.trace?.spans || [])
     .map((s) => `<li>${s.ok ? "✓" : "✕"} ${s.name}${s.detail?.planner ? ` (${s.detail.planner})` : ""}</li>`)
@@ -42,11 +45,11 @@ function renderSnapshot(snap) {
   const qc = snap.qc;
   const qcEl = document.getElementById("qc");
   if (qc) {
-    qcEl.innerHTML = `<p>QC ${qc.verdict.toUpperCase()} · score ${qc.score}</p>
+    qcEl.innerHTML = `${hostNote}<p>QC ${qc.verdict.toUpperCase()} · score ${qc.score}</p>
       <ul class="findings">${(qc.findings || [])
         .map((f) => `<li class="${f.severity}">${f.area} / ${f.code}: ${f.message}</li>`)
         .join("")}</ul>`;
-  } else qcEl.innerHTML = "";
+  } else qcEl.innerHTML = hostNote;
   const box = document.getElementById("approvals");
   if (snap.waitingFor) {
     box.classList.remove("hidden");
